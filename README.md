@@ -32,7 +32,7 @@ Dự án không chỉ dừng lại ở một trang bán hàng thông thường m
 ## 👤 Thông tin tác giả
 * **Họ tên:** Trần Thế Phong (PhongTT)
 * **MSSV:** CE190157
-* **Trường:** FPT University Can Tho (Kỳ 5)
+* **Trường:** FPT University Can Tho 
 
 ---
 *Dự án này được xây dựng với mục đích học tập và áp dụng các kỹ thuật Backend Java chuyên sâu.*
