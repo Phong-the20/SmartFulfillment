@@ -25,6 +25,7 @@ Dự án không chỉ dừng lại ở một trang bán hàng thông thường m
   <i>Hình 3: Danh sách các đánh giá thực tế từ khách hàng</i>
 </p>
 * **🚫 Bộ lọc ngôn từ (Bad Words Filter):** Backend tự động quét và che chắn các từ ngữ không phù hợp trước khi lưu vào Database.
+
 * **💳 Thanh toán đa phương thức:** Tích hợp cổng thanh toán trực tuyến **MoMo API** và thanh toán khi nhận hàng (COD).
 
 <p align="center">
