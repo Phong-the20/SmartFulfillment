@@ -1,0 +1,258 @@
+<footer th:fragment="footer-fragment" class="footer-modern mt-5">
+  <style>
+    .footer-modern {
+      background: #0f172a; /* Màu xanh đen sâu, sang hơn màu bg-dark mặc định */
+      color: #94a3b8;
+      padding-top: 4rem;
+      padding-bottom: 2rem;
+      border-top: 4px solid #3b82f6; /* Viền xanh Blue đặc trưng của SmartTech */
+    }
+    .footer-modern h5, .footer-modern h6 {
+      color: #f8fafc;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .footer-modern .brand-text {
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 1.5rem;
+    }
+    .footer-modern .nav-link-custom {
+      color: #94a3b8;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+    .footer-modern .nav-link-custom:hover {
+      color: #3b82f6;
+      transform: translateX(8px);
+    }
+    .footer-modern .contact-icon {
+      width: 35px;
+      height: 35px;
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+    }
+    .social-icons a {
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
+      color: white;
+      border-radius: 10px;
+      margin-right: 10px;
+      transition: 0.3s;
+    }
+    .social-icons a:hover {
+      background: #3b82f6;
+      transform: translateY(-5px);
+    }
+    .copyright-area {
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      margin-top: 3rem;
+      padding-top: 2rem;
+    }
+  </style>
+
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h5 class="mb-4 brand-text text-uppercase">
+          <i class="fa-solid fa-microchip me-2"></i>SMARTTECH STORE
+        </h5>
+        <p class="small mb-4">
+          Chuyên cung cấp các siêu phẩm iPhone, MacBook và linh kiện Gaming chính hãng.
+          Nâng tầm trải nghiệm số cho cộng đồng sinh viên FPT University.
+        </p>
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <div class="col-lg-2 col-md-4">
+        <h6 class="text-uppercase mb-4">DANH MỤC</h6>
+        <div class="d-flex flex-column">
+          <a href="#" class="nav-link-custom">iPhone Series</a>
+          <a href="#" class="nav-link-custom">MacBook Air/Pro</a>
+          <a href="#" class="nav-link-custom">Phụ kiện Gaming</a>
+          <a href="#" class="nav-link-custom">Linh kiện PC</a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4">
+        <h6 class="text-uppercase mb-4">DỊCH VỤ</h6>
+        <div class="d-flex flex-column">
+          <a href="#" class="nav-link-custom">Chính sách bảo hành 1:1</a>
+          <a href="#" class="nav-link-custom">Trả góp 0% qua thẻ</a>
+          <a href="#" class="nav-link-custom">Vận chuyển siêu tốc</a>
+          <a href="#" class="nav-link-custom">Trung tâm sửa chữa</a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-4">
+        <h6 class="text-uppercase mb-4">HỖ TRỢ TRỰC TUYẾN</h6>
+        <div class="mb-3 d-flex align-items-center">
+          <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <span class="small">600 Nguyễn Văn Cừ, Cần Thơ</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+          <span class="small">phongan200525@gmail.com</span>
+        </div>
+        <div class="mb-3 d-flex align-items-center">
+          <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+          <span class="small">Hotline: 1900 1234</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="copyright-area row align-items-center">
+      <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+        <p class="small mb-0">
+          © 2026 <span class="text-white fw-bold">SmartTech Store</span>.
+          Thiết kế bởi: <a href="#" class="text-primary text-decoration-none fw-bold">Trần Thế Phong</a>
+        </p>
+      </div>
+      <div class="col-md-6 text-center text-md-end">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" height="20" class="me-3 opacity-50" alt="visa">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" height="20" class="me-3 opacity-50" alt="paypal">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Mastercard-logo.svg" height="20" class="opacity-50" alt="mastercard">
+      </div>
+    </div>
+  </div>
+  <button id="chat-bubble-btn" class="btn btn-primary shadow-lg rounded-circle" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1000;">
+    <i class="fa-solid fa-comments fs-3"></i>
+  </button>
+
+  <div id="chat-box" class="card shadow-lg border-0 d-none" style="position: fixed; bottom: 100px; right: 30px; width: 350px; height: 450px; z-index: 1000; border-radius: 15px; overflow: hidden;">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+      <h6 class="mb-0 fw-bold"><i class="fa-solid fa-headset me-2"></i>CSKH SmartTech</h6>
+      <button id="close-chat-btn" class="btn btn-sm btn-link text-white p-0"><i class="fa-solid fa-xmark fs-5"></i></button>
+    </div>
+
+    <div id="chat-messages" class="card-body bg-light overflow-auto p-3" style="height: 320px;">
+      <div class="text-center text-muted small mb-3">Tư vấn viên sẽ trả lời bạn ngay lập tức!</div>
+    </div>
+
+    <div class="card-footer bg-white p-2">
+      <div class="input-group">
+        <input type="text" id="chat-input" class="form-control border-0 bg-light rounded-pill px-3" placeholder="Nhập tin nhắn...">
+        <button id="send-btn" class="btn btn-primary rounded-circle ms-2" style="width: 40px; height: 40px;">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+  <script th:inline="javascript">
+    let stompClient = null;
+
+    let loggedInUser = /*[[${#authentication.name != 'anonymousUser' ? #authentication.name : null}]]*/ null;
+
+    let customerName = loggedInUser;
+    let roomId = loggedInUser; // Mặc định mã phòng là tên user (VD: PhongTT)
+
+    if (!customerName) {
+      // Lấy thông tin khách vãng lai từ bộ nhớ trình duyệt
+      customerName = localStorage.getItem('guestChatName');
+      roomId = localStorage.getItem('guestRoomId');
+
+      if (!customerName) {
+        let randomNum = Math.floor(Math.random() * 10000);
+        customerName = "Khách hàng " + randomNum; // Tên hiển thị đẹp
+        roomId = "GUEST_" + randomNum; // Mã phòng CHUẨN (Không khoảng trắng, không dấu)
+
+        localStorage.setItem('guestChatName', customerName);
+        localStorage.setItem('guestRoomId', roomId);
+      }
+    }
+
+    function connect() {
+      let socket = new SockJS('/ws-smarttech');
+      stompClient = Stomp.over(socket);
+      stompClient.connect({}, function (frame) {
+        // Dùng roomId CHUẨN để đăng ký kênh
+        stompClient.subscribe('/topic/messages/' + roomId, function (response) {
+          let msg = JSON.parse(response.body);
+          showChatMessage(msg);
+        });
+      });
+    }
+
+    function sendMessage() {
+      let input = document.getElementById('chat-input');
+      let content = input.value.trim();
+      if (content && stompClient) {
+        let chatMessage = {
+          sender: customerName, // Vẫn gửi tên đẹp để hiển thị
+          content: content
+        };
+        // Bắn tin nhắn qua roomId CHUẨN
+        stompClient.send("/app/chat.send/" + roomId, {}, JSON.stringify(chatMessage));
+        input.value = '';
+      }
+    }
+
+    function showChatMessage(msg) {
+      let chatMessages = document.getElementById('chat-messages');
+      let isMe = msg.sender === customerName;
+
+      let msgHtml = `
+            <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'} mb-2">
+                <span class="small text-muted" style="font-size: 0.7rem;">${isMe ? 'Bạn' : msg.sender} - ${msg.timestamp}</span>
+                <div class="${isMe ? 'bg-primary text-white' : 'bg-white border text-dark'} p-2 rounded-3 shadow-sm" style="max-width: 80%;">
+                    ${msg.content}
+                </div>
+            </div>
+        `;
+      chatMessages.innerHTML += msgHtml;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function loadChatHistory() {
+      // Móc lịch sử bằng roomId CHUẨN
+      fetch('/api/chat/history/' + roomId)
+              .then(response => response.json())
+              .then(data => {
+                document.getElementById('chat-messages').innerHTML =
+                        '<div class="text-center text-muted small mb-3">Tư vấn viên sẽ trả lời bạn ngay lập tức!</div>';
+                data.forEach(msg => showChatMessage(msg));
+              })
+              .catch(error => console.error("Lỗi tải lịch sử chat: ", error));
+    }
+
+    document.getElementById('chat-bubble-btn').addEventListener('click', function() {
+      document.getElementById('chat-box').classList.remove('d-none');
+      this.classList.add('d-none');
+      if(!stompClient) {
+        connect();
+        loadChatHistory();
+      }
+    });
+
+    document.getElementById('close-chat-btn').addEventListener('click', function() {
+      document.getElementById('chat-box').classList.add('d-none');
+      document.getElementById('chat-bubble-btn').classList.remove('d-none');
+    });
+
+    document.getElementById('send-btn').addEventListener('click', sendMessage);
+    document.getElementById('chat-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</footer>

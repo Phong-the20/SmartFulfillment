@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Yêu Thích | SmartTech')}"></head>
+
+<body style="background-color: #f8f9fa;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5" style="min-height: 60vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h2 class="fw-bold mb-0 text-dark">
+            <i class="fa-solid fa-heart text-danger me-2"></i>Sản Phẩm Yêu Thích
+        </h2>
+        <span class="badge bg-primary rounded-pill px-3" id="favorite-count" th:text="${products.size() + ' món'}">0 món</span>
+    </div>
+
+    <div th:if="${#lists.isEmpty(products)}" class="text-center py-5 bg-white rounded-4 shadow-sm" id="empty-msg">
+        <i class="fa-solid fa-heart-crack fa-5x text-light mb-3"></i>
+        <h4 class="text-muted fw-bold">Danh sách yêu thích đang trống!</h4>
+        <a th:href="@{/products}" class="btn btn-primary rounded-pill px-5 py-2 mt-2 fw-bold text-decoration-none">ĐI MUA SẮM NGAY</a>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" id="favorite-grid">
+        <div class="col favorite-item" th:each="p : ${products}" th:id="'product-' + ${p.skuCode}">
+            <div class="card h-100 product-card shadow-sm border-0 transition-hover" style="border-radius: 18px; overflow: hidden; position: relative;">
+
+                <button class="btn-favorite-icon position-absolute shadow-sm d-flex align-items-center justify-content-center"
+                        th:data-sku="${p.skuCode}"
+                        onclick="removeFromFavorites(this)"
+                        style="top: 15px; right: 15px; width: 38px; height: 38px; z-index: 11; background: white; border-radius: 50%; border: none; cursor: pointer;">
+                    <i class="fa-solid fa-heart text-danger fs-5"></i>
+                </button>
+
+                <div class="position-relative bg-white pt-3">
+                    <img th:src="${p.imageUrl}" class="card-img-top p-4" style="object-fit: contain; height: 200px;">
+                </div>
+
+                <div class="card-body p-4 bg-white border-top">
+                    <h6 class="card-title fw-bold text-dark text-truncate" th:text="${p.productName}"></h6>
+                    <div class="mb-3">
+                        <span class="text-primary fw-bold fs-5" th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></span>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a th:href="@{/products/detail/{id}(id=${p.skuCode})}" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold text-decoration-none">Chi tiết</a>
+                        </div>
+                        <div class="col-6">
+                            <a th:href="@{/cart/buy-now/{id}(id=${p.skuCode})}" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold shadow-sm text-decoration-none">Mua ngay</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+<div th:replace="~{fragments/scripts :: scripts-fragment}"></div>
+
+<script>
+    // Hàm riêng cho trang yêu thích: Bấm là xóa card luôn
+    function removeFromFavorites(btn) {
+        const sku = btn.getAttribute('data-sku');
+
+        // Gọi API giống trang chủ
+        fetch('/api/favorite/toggle?sku=' + encodeURIComponent(sku), {
+            method: 'POST'
+        })
+            .then(response => {
+                if (response.ok) return response.json();
+                throw new Error('Network response was not ok');
+            })
+            .then(data => {
+                if (data.success && !data.favorited) {
+                    // 1. Tìm cái thẻ card của sản phẩm này và ẩn nó đi với hiệu ứng
+                    const item = document.getElementById('product-' + sku);
+                    if (item) {
+                        item.style.transition = 'all 0.4s ease';
+                        item.style.transform = 'scale(0)';
+                        item.style.opacity = '0';
+
+                        setTimeout(() => {
+                            item.remove();
+                            // 2. Nếu xóa hết sạch thì hiện thông báo trống
+                            const remainingItems = document.querySelectorAll('.favorite-item');
+                            document.getElementById('favorite-count').innerText = remainingItems.length + ' món';
+
+                            if (remainingItems.length === 0) {
+                                location.reload(); // Reload để hiện giao diện trống cho đẹp
+                            }
+                        }, 400);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Không thể thực hiện thao tác lúc này!');
+            });
+    }
+</script>
+
+<style>
+    .transition-hover { transition: all 0.3s ease; }
+    .transition-hover:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.12) !important; }
+    .btn-favorite-icon:hover { transform: scale(1.15); background-color: #fff1f1 !important; transition: all 0.2s; }
+</style>
+</body>
+</html>

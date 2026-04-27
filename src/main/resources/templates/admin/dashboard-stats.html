@@ -1,0 +1,61 @@
+<div th:fragment="main-content">
+    <div class="container-fluid py-4">
+        <h2 class="fw-bold mb-4">Hệ thống Điều phối SmartTech</h2>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-primary text-white p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-white text-primary rounded-circle p-3 me-3">
+                            <i class="fa-solid fa-warehouse fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Tổng số kho</h6>
+                            <h3 class="fw-bold mb-0" id="stat-total-wh">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-danger text-white p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-white text-danger rounded-circle p-3 me-3">
+                            <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Kho báo động (Đỏ)</h6>
+                            <h3 class="fw-bold mb-0" id="stat-out-stock">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-success text-white p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-white text-success rounded-circle p-3 me-3">
+                            <i class="fa-solid fa-boxes-packing fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Tổng tồn kho</h6>
+                            <h3 class="fw-bold mb-0" id="stat-total-items">0</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Lấy dữ liệu thống kê từ API (Ông nhớ phải có API này trong Controller nhé)
+            fetch('/api/warehouses/stats')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('stat-total-wh').innerText = data.totalWarehouses || 0;
+                    document.getElementById('stat-out-stock').innerText = data.outOfStockCount || 0;
+                    document.getElementById('stat-total-items').innerText = data.totalItems || 0;
+                })
+                .catch(err => console.error("Chưa có API thống kê", err));
+        </script>
+    </div>
+</div>

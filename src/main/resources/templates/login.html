@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Đăng nhập / Đăng ký | SmartTech')}"></head>
+<body style="background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); min-height: 100vh;">
+
+<div class="position-absolute top-0 start-0 p-4">
+  <a th:href="@{/}" class="text-white text-decoration-none fw-bold small">
+    <i class="fa-solid fa-arrow-left me-2"></i>QUAY VỀ TRANG CHỦ
+  </a>
+</div>
+
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh; padding: 2rem 0;">
+  <div class="col-12 col-md-10 col-lg-7">
+    <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: 25px; background: rgba(255, 255, 255, 0.98);">
+
+      <div class="text-center mb-4">
+        <h2 class="fw-bold text-primary"><i class="fa-solid fa-microchip me-2"></i>SMARTTECH</h2>
+        <p class="text-muted small">Nền tảng mua sắm công nghệ thông minh</p>
+      </div>
+
+      <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active fw-bold py-2 rounded-pill" id="tab-login" data-bs-toggle="pill" data-bs-target="#pills-login" type="button">Đăng Nhập</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-bold py-2 rounded-pill" id="tab-register" data-bs-toggle="pill" data-bs-target="#pills-register" type="button">Đăng Ký</button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="pills-login" role="tabpanel">
+
+          <div th:if="${param.error != null and param.openRegister == null}" class="alert alert-danger py-2 text-center small mb-3 rounded-pill border-0 shadow-sm">
+            <i class="fa-solid fa-circle-xmark me-1"></i>
+            <span th:text="${param.msg != null ? param.msg : 'Sai tài khoản hoặc mật khẩu!'}"></span>
+          </div>
+
+          <div th:if="${msg != null or param.verified != null}" class="alert alert-success py-2 text-center small mb-3 rounded-pill border-0 shadow-sm">
+            <i class="fa-solid fa-circle-check me-1"></i>
+            <span>Thao tác thành công! Mời bạn đăng nhập.</span>
+          </div>
+
+          <form th:action="@{/login}" method="post">
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control border-0 bg-light rounded-4" name="username" placeholder="User" required>
+              <label><i class="fa-regular fa-user me-2"></i>Tên đăng nhập</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control border-0 bg-light rounded-4" name="password" placeholder="Pass" required>
+              <label><i class="fa-solid fa-lock me-2"></i>Mật khẩu</label>
+            </div>
+            <div class="text-end mb-3">
+              <a th:href="@{/forgot-password}" class="text-decoration-none small fw-bold text-primary">Quên mật khẩu?</a>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow">ĐĂNG NHẬP</button>
+          </form>
+
+          <div class="text-center mt-4">
+            <div class="d-flex align-items-center"><hr class="flex-grow-1 text-muted"><span class="px-2 small text-muted fw-bold">HOẶC</span><hr class="flex-grow-1 text-muted"></div>
+            <a th:href="@{/oauth2/authorization/google}" class="btn btn-outline-dark w-100 rounded-pill py-2 mt-3 fw-bold border-2 d-flex align-items-center justify-content-center">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width: 18px;" class="me-2"> Tiếp tục với Google
+            </a>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="pills-register" role="tabpanel">
+
+          <div th:if="${param.error != null and param.openRegister != null}" class="alert alert-danger py-2 text-center small mb-3 rounded-pill border-0 shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            <span th:text="${param.msg != null ? param.msg : 'Thông tin đăng ký không hợp lệ!'}"></span>
+          </div>
+
+          <form th:action="@{/register}" method="post" th:object="${account}" id="registerForm">
+            <div class="row g-2">
+              <div class="col-md-6 mb-3">
+                <div class="form-floating">
+                  <input type="text" class="form-control border-0 bg-light rounded-4" th:field="*{fullName}" placeholder="Name" required>
+                  <label>Họ và tên</label>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-floating">
+                  <input type="text" class="form-control border-0 bg-light rounded-4" th:field="*{phone}"
+                         pattern="^0\d{9}$" title="SĐT phải 10 số, bắt đầu bằng số 0" required>
+                  <label>Số điện thoại</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-4"><select class="form-select border-0 bg-light rounded-4 py-3" id="p_reg" required><option value="">Tỉnh/Thành</option></select></div>
+              <div class="col-md-4"><select class="form-select border-0 bg-light rounded-4 py-3" id="d_reg" required disabled><option value="">Quận/Huyện</option></select></div>
+              <div class="col-md-4"><select class="form-select border-0 bg-light rounded-4 py-3" id="w_reg" required disabled><option value="">Phường/Xã</option></select></div>
+              <div class="col-12"><input type="text" class="form-control border-0 bg-light rounded-4 mt-2" id="s_reg" placeholder="Số nhà, tên đường..." required></div>
+              <input type="hidden" th:field="*{address}" id="full_address_reg">
+            </div>
+
+            <div class="form-floating mb-3">
+              <input type="email" class="form-control border-0 bg-light rounded-4" th:field="*{email}" required>
+              <label>Email xác thực</label>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-6 mb-3">
+                <div class="form-floating"><input type="text" class="form-control border-0 bg-light rounded-4" th:field="*{username}" required><label>Username</label></div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-floating"><input type="password" class="form-control border-0 bg-light rounded-4" id="p1" th:field="*{password_hash}" required><label>Mật khẩu</label></div>
+              </div>
+            </div>
+
+            <div class="form-floating mb-4">
+              <input type="password" class="form-control border-0 bg-light rounded-4" id="p2" th:field="*{confirmPassword}" required>
+              <label>Xác nhận mật khẩu</label>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow">ĐĂNG KÝ NGAY</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{fragments/scripts :: scripts-fragment}"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script>
+  // 1. Địa chỉ API
+  const host = "https://provinces.open-api.vn/api/";
+  var pSel = document.getElementById("p_reg"), dSel = document.getElementById("d_reg"), wSel = document.getElementById("w_reg"), sInp = document.getElementById("s_reg"), fInp = document.getElementById("full_address_reg");
+
+  axios.get(host + "?depth=1").then(res => { res.data.forEach(p => pSel.options[pSel.options.length] = new Option(p.name, p.code)); });
+  pSel.onchange = () => {
+    dSel.length = 1; dSel.disabled = false; wSel.length = 1; wSel.disabled = true;
+    axios.get(host + "p/" + pSel.value + "?depth=2").then(res => { res.data.districts.forEach(d => dSel.options[dSel.options.length] = new Option(d.name, d.code)); });
+    cb();
+  };
+  dSel.onchange = () => {
+    wSel.length = 1; wSel.disabled = false;
+    axios.get(host + "d/" + dSel.value + "?depth=2").then(res => { res.data.wards.forEach(w => wSel.options[wSel.options.length] = new Option(w.name, w.code)); });
+    cb();
+  };
+  wSel.onchange = sInp.oninput = () => cb();
+  function cb() { if(pSel.value && dSel.value && wSel.value) fInp.value = sInp.value + ", " + wSel.options[wSel.selectedIndex].text + ", " + dSel.options[dSel.selectedIndex].text + ", " + pSel.options[pSel.selectedIndex].text; }
+
+  // 2. Check mật khẩu & Auto Tab
+  const pass1 = document.getElementById("p1"), pass2 = document.getElementById("p2");
+  pass1.onchange = pass2.onkeyup = () => pass1.value !== pass2.value ? pass2.setCustomValidity("Mật khẩu không khớp!") : pass2.setCustomValidity('');
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('openRegister')) {
+    new bootstrap.Tab(document.getElementById('tab-register')).show();
+  }
+</script>
+</body>
+</html>

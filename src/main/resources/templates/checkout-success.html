@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Đặt hàng thành công | SmartTech')}"></head>
+
+<body style="background-color: #f8f9fa;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-lg p-5 rounded-5">
+                <div class="mb-4">
+                    <i class="fa-solid fa-circle-check text-success" style="font-size: 5rem;"></i>
+                </div>
+
+                <h2 class="fw-bold text-dark mb-3">ĐẶT HÀNG THÀNH CÔNG!</h2>
+                <p class="text-muted fs-5 mb-4">Cảm ơn ông đã tin tưởng lựa chọn SmartTech. Đơn hàng của ông đang được chúng tui xử lý và sẽ sớm được giao đến.</p>
+
+                <div class="bg-light p-4 rounded-4 mb-4 text-start">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Mã đơn hàng:</span>
+                        <span class="fw-bold text-primary" th:text="${orderId}">#ORD-123456</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Ngày đặt:</span>
+                        <span class="fw-bold" th:text="${#temporals.format(orderDate, 'dd/MM/yyyy HH:mm')}">22/04/2026</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-secondary">Trạng thái:</span>
+                        <span class="badge bg-warning-subtle text-warning px-3 rounded-pill">Đang chờ xử lý</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 small mb-4">
+                    <i class="fa-solid fa-envelope me-2"></i> Một email xác nhận đã được gửi đến hòm thư của ông.
+                </div>
+
+                <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                    <a th:href="@{/}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">
+                        <i class="fa-solid fa-house me-2"></i> VỀ TRANG CHỦ
+                    </a>
+                    <a th:href="@{/orders}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow">
+                        <i class="fa-solid fa-list-ul me-2"></i> XEM ĐƠN HÀNG
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+</body>
+</html>

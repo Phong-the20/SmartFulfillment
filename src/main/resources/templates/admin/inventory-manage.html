@@ -1,0 +1,72 @@
+<div th:fragment="main-content">
+    <div class="container-fluid py-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-truck-ramp-box me-2"></i>NHẬP HÀNG VÀO KHO</h5>
+            </div>
+            <div class="card-body">
+                <form id="import-form">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">1. Chọn kho nhận hàng</label>
+                            <select class="form-select" id="warehouseId" required>
+                                <option value="">-- Chọn kho --</option>
+                                <option th:each="wh : ${warehouses}" th:value="${wh.warehouseId}" th:text="${wh.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">2. Chọn sản phẩm</label>
+                            <select class="form-select" id="skuCode" required>
+                                <option value="">-- Chọn sản phẩm --</option>
+                                <option th:each="p : ${products}" th:value="${p.skuCode}" th:text="${p.productName}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">3. Số lượng</label>
+                            <input type="number" class="form-control" id="quantity" min="1" value="1" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                <i class="fa-solid fa-plus me-2"></i> NHẬP KHO
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('import-form').onsubmit = function(e) {
+            e.preventDefault();
+
+            const data = {
+                warehouseId: document.getElementById('warehouseId').value,
+                skuCode: document.getElementById('skuCode').value,
+                quantity: document.getElementById('quantity').value
+            };
+
+            // Gửi dữ liệu về Backend
+            fetch('/api/inventory/import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("🚀 Nhập kho thành công!");
+                        // Reset form sau khi nhập xong cho nó chuyên nghiệp
+                        document.getElementById('import-form').reset();
+                    } else {
+                        alert("❌ Lỗi: Không thể nhập hàng!");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("⚠️ Lỗi kết nối server!");
+                });
+        };
+    </script>
+</div>

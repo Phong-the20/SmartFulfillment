@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Hồ Sơ | SmartTech')}"></head>
+<body style="background-color: #f0f2f5;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm text-center p-4 rounded-5 sticky-top" style="top: 100px;">
+                <img th:src="'https://ui-avatars.com/api/?name=' + ${user.fullName} + '&background=0d6efd&color=fff&size=128'" class="rounded-circle shadow-sm mb-3" width="120">
+                <h4 class="fw-bold" th:text="${user.fullName}"></h4>
+                <p class="text-muted small" th:text="${user.email}"></p>
+                <div class="text-start bg-light p-3 rounded-4 mt-3">
+                    <p class="small mb-1"><i class="fa-solid fa-location-dot me-2 text-primary"></i> <span th:text="${user.address}"></span></p>
+                </div>
+                <hr class="my-4 opacity-25">
+                <a th:href="@{/logout}" class="btn btn-outline-danger w-100 rounded-pill fw-bold">ĐĂNG XUẤT</a>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4 rounded-5">
+                <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-user-gear me-2"></i>CHỈNH SỬA HỒ SƠ</h5>
+
+                <div th:if="${successMsg}" class="alert alert-success border-0 rounded-pill small" th:text="${successMsg}"></div>
+
+                <form th:action="@{/profile/update}" method="post">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">HỌ VÀ TÊN</label>
+                            <input type="text" name="fullName" class="form-control border-0 bg-light rounded-pill px-4" th:value="${user.fullName}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">SỐ ĐIỆN THOẠI</label>
+                            <input type="text" name="phone" class="form-control border-0 bg-light rounded-pill px-4" th:value="${user.phone}" pattern="^0\d{9}$" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">EMAIL (CỐ ĐỊNH)</label>
+                            <input type="email" class="form-control border-0 bg-white rounded-pill px-4 text-muted" th:value="${user.email}" readonly>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <label class="form-label small fw-bold text-primary">CẬP NHẬT ĐỊA CHỈ MỚI</label>
+                            <div class="row g-2">
+                                <div class="col-md-4"><select class="form-select border-0 bg-light rounded-4" id="p_prof"><option value="">Chọn Tỉnh</option></select></div>
+                                <div class="col-md-4"><select class="form-select border-0 bg-light rounded-4" id="d_prof" disabled><option value="">Quận/Huyện</option></select></div>
+                                <div class="col-md-4"><select class="form-select border-0 bg-light rounded-4" id="w_prof" disabled><option value="">Phường/Xã</option></select></div>
+                                <div class="col-12"><input type="text" class="form-control border-0 bg-light rounded-4 mt-2" id="s_prof" placeholder="Số nhà, tên đường..."></div>
+                                <input type="hidden" name="address" id="full_address_prof" th:value="${user.address}">
+                            </div>
+                            <small class="text-muted mt-2 d-block">* Để trống nếu không muốn đổi địa chỉ cũ.</small>
+                        </div>
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow">LƯU THAY ĐỔI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script>
+    // Tái sử dụng logic load địa chỉ
+    var pP = document.getElementById("p_prof"), dP = document.getElementById("d_prof"), wP = document.getElementById("w_prof"), sP = document.getElementById("s_prof"), fP = document.getElementById("full_address_prof");
+
+    // Hàm này giống hệt bên login, ông có thể tách ra file JS riêng cho xịn
+    const host_api = "https://provinces.open-api.vn/api/";
+    axios.get(host_api + "?depth=1").then(res => {
+        res.data.forEach(p => pP.options[pP.options.length] = new Option(p.name, p.code));
+    });
+    pP.onchange = () => {
+        dP.length = 1; dP.disabled = false; wP.length = 1; wP.disabled = true;
+        axios.get(host_api + "p/" + pP.value + "?depth=2").then(res => {
+            res.data.districts.forEach(d => dP.options[dP.options.length] = new Option(d.name, d.code));
+        });
+    };
+    dP.onchange = () => {
+        wP.length = 1; wP.disabled = false;
+        axios.get(host_api + "d/" + dP.value + "?depth=2").then(res => {
+            res.data.wards.forEach(w => wP.options[wP.options.length] = new Option(w.name, w.code));
+        });
+    };
+    var updateF = () => {
+        if(pP.value && dP.value && wP.value) {
+            fP.value = sP.value + ", " + wP.options[wP.selectedIndex].text + ", " + dP.options[dP.selectedIndex].text + ", " + pP.options[pP.selectedIndex].text;
+        }
+    };
+    pP.onblur = dP.onblur = wP.onblur = sP.oninput = updateF;
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head-fragment(${p.productName} + ' | SmartTech')}"></head>
+
+<body style="background-color: #f8f9fa;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-transparent p-0">
+            <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/products}" class="text-decoration-none">Sản phẩm</a></li>
+            <li class="breadcrumb-item active" th:text="${p.productName}">Tên sản phẩm</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 sticky-top" style="border-radius: 25px; top: 100px; z-index: 10;">
+                <img th:src="${p.imageUrl}" class="img-fluid mx-auto d-block" th:alt="${p.productName}"
+                     style="max-height: 500px; object-fit: contain;">
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="ps-md-4">
+                <span class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-bold" th:text="${p.category}">Danh mục</span>
+                <h1 class="fw-bold text-dark mb-3" th:text="${p.productName}">Tên sản phẩm</h1>
+                <p class="text-muted mb-4">Mã sản phẩm (SKU): <span class="fw-bold text-dark" th:text="${p.skuCode}">SKU-123</span></p>
+
+                <div class="d-flex align-items-center mb-4">
+                    <h2 class="text-primary fw-bold mb-0 me-3" th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">Price</h2>
+                </div>
+
+                <div th:if="${errorMsg}" class="alert alert-danger rounded-pill py-2 px-4 mb-3" th:text="${errorMsg}"></div>
+                <div th:if="${successMsg}" class="alert alert-success rounded-pill py-2 px-4 mb-3" th:text="${successMsg}"></div>
+
+                <form th:action="@{/cart/add}" method="post">
+                    <input type="hidden" name="skuCode" th:value="${p.skuCode}">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-sm-12 col-md-5">
+                            <label class="form-label small fw-bold text-muted ms-2">SỐ LƯỢNG</label>
+                            <div class="input-group border rounded-pill overflow-hidden bg-white shadow-sm" style="height: 50px;">
+                                <button class="btn btn-light border-0 px-3" type="button" id="btn-minus"><i class="fa-solid fa-minus text-primary"></i></button>
+                                <input type="number" id="qty-input" name="quantity" class="form-control border-0 text-center fw-bold fs-5" value="1" readonly th:data-stock="${stock}">
+                                <button class="btn btn-light border-0 px-3" type="button" id="btn-plus"><i class="fa-solid fa-plus text-primary"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-sm-12 pt-3">
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold flex-grow-1">THÊM VÀO GIỎ</button>
+                                <button type="button" class="btn btn-outline-danger btn-lg rounded-pill px-4 fw-bold" th:data-sku="${p.skuCode}" onclick="toggleProductFavorite(this)">
+                                    <i th:class="${favoritedSkus != null and favoritedSkus.contains(p.skuCode) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 30px;">
+            <h3 class="fw-bold text-dark border-bottom pb-3 mb-4"><i class="fa-solid fa-star text-warning me-2"></i>Đánh giá khách hàng</h3>
+
+            <div th:if="${canReview}" class="bg-light p-4 rounded-4 mb-5">
+                <h5 class="fw-bold mb-3">Chia sẻ trải nghiệm của ông</h5>
+                <form th:action="@{/review/submit}" method="post" id="reviewForm">
+                    <input type="hidden" name="skuCode" th:value="${p.skuCode}">
+                    <div class="mb-3">
+                        <select name="rating" class="form-select border-0 shadow-sm rounded-pill">
+                            <option value="5">⭐⭐⭐⭐⭐ - Tuyệt vời</option>
+                            <option value="4">⭐⭐⭐⭐ - Rất tốt</option>
+                            <option value="3">⭐⭐⭐ - Bình thường</option>
+                            <option value="2">⭐⭐ - Tệ</option>
+                            <option value="1">⭐ - Rất tệ</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <textarea name="comment" id="reviewComment" class="form-control border-0 shadow-sm rounded-4" rows="3"
+                                  placeholder="Sản phẩm dùng tốt không ông? (Tối đa 200 từ)"></textarea>
+                        <div class="d-flex justify-content-between mt-1 px-2">
+                            <small id="wordCountLabel" class="text-muted">0 / 200 từ</small>
+                            <small id="errorLabel" class="text-danger fw-bold" style="display: none;">Quá 200 từ rồi ông ơi!</small>
+                        </div>
+                    </div>
+                    <button type="submit" id="btnSubmitReview" class="btn btn-primary rounded-pill px-4 fw-bold">GỬI ĐÁNH GIÁ</button>
+                </form>
+            </div>
+
+            <div th:each="rev : ${reviews}" class="mb-4 pb-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <strong th:text="${#strings.substring(rev.username, 0, 1).toUpperCase()}">U</strong>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold" th:text="${rev.username}">Username</h6>
+                            <small class="text-muted" th:text="${#temporals.format(rev.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+                        </div>
+                    </div>
+                    <div class="text-warning">
+                        <span th:each="i : ${#numbers.sequence(1, rev.rating)}">⭐</span>
+                    </div>
+                </div>
+                <p class="text-secondary ms-5 ps-2" th:text="${rev.comment}">Nội dung...</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+<div th:replace="~{fragments/scripts :: scripts-fragment}"></div>
+
+<script>
+    // 1. SCRIPT ĐẾM TỪ CỦA PHẦN ĐÁNH GIÁ
+    document.addEventListener("DOMContentLoaded", function() {
+        const commentArea = document.getElementById('reviewComment');
+        if (commentArea) {
+            const wordLabel = document.getElementById('wordCountLabel');
+            const errorLabel = document.getElementById('errorLabel');
+            const btnSubmit = document.getElementById('btnSubmitReview');
+
+            commentArea.addEventListener('input', function() {
+                const text = this.value.trim();
+                const words = text ? text.split(/\s+/).length : 0;
+
+                wordLabel.innerText = words + " / 200 từ";
+
+                if (words > 200) {
+                    errorLabel.style.display = 'block';
+                    btnSubmit.disabled = true;
+                    wordLabel.classList.add('text-danger');
+                } else {
+                    errorLabel.style.display = 'none';
+                    btnSubmit.disabled = false;
+                    wordLabel.classList.remove('text-danger');
+                }
+            });
+        }
+    });
+
+    // 2. SCRIPT YÊU THÍCH (Đã phục hồi)
+    function toggleProductFavorite(btn) {
+        const sku = btn.getAttribute('data-sku');
+        const icon = btn.querySelector('i');
+
+        fetch('/api/favorite/toggle?sku=' + encodeURIComponent(sku), { method: 'POST' })
+            .then(res => {
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return null;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    // Đổi class để hiện tim đỏ / tim rỗng
+                    icon.className = data.favorited ? 'fa-solid fa-heart text-danger' : 'fa-regular fa-heart';
+                }
+            })
+            .catch(err => console.error('Lỗi toggle tim đỏ:', err));
+    }
+
+    // 3. SCRIPT CỘNG TRỪ SỐ LƯỢNG (Đã phục hồi)
+    document.addEventListener("DOMContentLoaded", function() {
+        const btnMinus = document.getElementById('btn-minus');
+        const btnPlus = document.getElementById('btn-plus');
+        const qtyInput = document.getElementById('qty-input');
+
+        if (qtyInput && btnMinus && btnPlus) {
+            const stock = parseInt(qtyInput.getAttribute('data-stock')) || 0;
+
+            btnMinus.onclick = () => {
+                if (qtyInput.value > 1) qtyInput.value--;
+            };
+
+            btnPlus.onclick = () => {
+                if (parseInt(qtyInput.value) < stock) {
+                    qtyInput.value++;
+                } else {
+                    alert("SmartTech hiện chỉ còn " + stock + " sản phẩm này!");
+                }
+            };
+        }
+    });
+</script>
+</body>
+</html>

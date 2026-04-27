@@ -1,0 +1,225 @@
+<div th:fragment="main-content">
+  <div class="container-fluid px-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold text-dark mb-1">
+          <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>QUẢN LÝ SẢN PHẨM
+        </h2>
+        <p class="text-muted mb-0 small">Hệ thống SmartFulfillment - Cập nhật thông tin hàng hóa</p>
+      </div>
+      <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold transition-hover"
+              data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="fa-solid fa-plus me-2"></i>THÊM SẢN PHẨM
+      </button>
+    </div>
+
+    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 mb-4" role="alert">
+      <i class="fa-solid fa-circle-check me-2"></i><span th:text="${successMsg}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 mb-4" role="alert">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i><strong>Cảnh báo:</strong> <span th:text="${errorMsg}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary text-uppercase small fw-bold border-bottom">
+            <tr>
+              <th class="ps-4 py-3">Ảnh</th>
+              <th>Mã SKU</th>
+              <th>Tên sản phẩm</th>
+              <th>Giá bán</th>
+              <th class="text-center">Tồn kho</th>
+              <th class="text-center">Trạng thái</th>
+              <th class="text-center">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${products}" class="border-bottom transition-row">
+              <td class="ps-4">
+                <div class="product-img-container shadow-sm rounded-3 overflow-hidden border" style="width: 50px; height: 50px;">
+                  <img th:src="${p.imageUrl != null ? p.imageUrl : 'https://placehold.co/50x50'}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+              </td>
+              <td class="fw-bold text-primary" th:text="${p.skuCode}">SKU</td>
+              <td class="fw-bold text-dark" th:text="${p.productName}">Name</td>
+              <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</td>
+              <td class="text-center"><span th:class="${p.totalQuantity > 0} ? 'fw-bold text-dark' : 'fw-bold text-danger'" th:text="${p.totalQuantity}">0</span></td>
+              <td class="text-center">
+                <span th:if="${p.active}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2"><i class="fa-solid fa-check-circle me-1"></i> Đang bán</span>
+                <span th:unless="${p.active}" class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-2"><i class="fa-solid fa-eye-slash me-1"></i> Tạm ngưng</span>
+              </td>
+              <td class="text-center px-4">
+                <div class="d-flex justify-content-center gap-2">
+                  <button class="btn btn-outline-warning btn-sm rounded-3"
+                          th:data-sku="${p.skuCode}"
+                          onclick="openEditModal(this.getAttribute('data-sku'))" title="Sửa sản phẩm">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <a th:href="@{/admin/products/toggle/{id}(id=${p.skuCode})}" th:class="${p.active} ? 'btn btn-outline-secondary btn-sm rounded-3' : 'btn btn-success btn-sm rounded-3'" title="Tắt/Mở kinh doanh">
+                    <i th:class="${p.active} ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                  </a>
+                  <a th:href="@{/admin/products/delete/{id}(id=${p.skuCode})}" class="btn btn-outline-danger btn-sm rounded-3" onclick="return confirm('Xác nhận xóa vĩnh viễn?')" title="Xóa">
+                    <i class="fa-solid fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <form th:action="@{/admin/products/add}" method="post" enctype="multipart/form-data">
+          <div class="modal-header bg-primary text-white rounded-top-4 border-0">
+            <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle me-2"></i>Thêm Mới Sản Phẩm</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Mã SKU</label>
+              <input type="text" name="skuCode" class="form-control rounded-3 bg-light border-0" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Tên sản phẩm</label>
+              <input type="text" name="productName" class="form-control rounded-3 bg-light border-0" required>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Giá bán (₫)</label>
+                <input type="number" name="basePrice" class="form-control rounded-3 bg-light border-0" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Danh mục</label>
+                <select name="category" class="form-select rounded-3 bg-light border-0">
+                  <option value="IPHONE">IPHONE</option>
+                  <option value="LAPTOP">LAPTOP</option>
+                  <option value="GAMING">GAMING</option>
+                  <option value="WEARABLE">WEARABLE</option>
+                  <option value="MONITOR">MONITOR</option>
+                  <option value="ACCESSORIES">PHỤ KIỆN</option>
+                  <option value="ELECTRONICS">ĐIỆN TỬ</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Trọng lượng (g)</label>
+                <input type="number" name="weightGram" class="form-control rounded-3 bg-light border-0" value="0">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Ảnh từ máy</label>
+                <input type="file" name="imageFile" class="form-control rounded-3 bg-light border-0" accept="image/*">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-4 pt-0">
+            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">LƯU VÀO HỆ THỐNG</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <form th:action="@{/admin/products/update}" method="post" enctype="multipart/form-data">
+          <div class="modal-header bg-warning text-dark rounded-top-4 border-0">
+            <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-nib me-2"></i>Chỉnh Sửa Sản Phẩm</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Mã SKU (Khóa chính - Không sửa)</label>
+              <input type="text" id="edit_skuCode" name="skuCode" class="form-control rounded-3 bg-secondary text-white border-0" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Tên sản phẩm</label>
+              <input type="text" id="edit_productName" name="productName" class="form-control rounded-3 bg-light border-0" required>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Giá bán (₫)</label>
+                <input type="number" id="edit_basePrice" name="basePrice" class="form-control rounded-3 bg-light border-0" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Danh mục</label>
+                <select id="edit_category" name="category" class="form-select rounded-3 bg-light border-0">
+                  <option value="IPHONE">IPHONE</option>
+                  <option value="LAPTOP">LAPTOP</option>
+                  <option value="GAMING">GAMING</option>
+                  <option value="WEARABLE">WEARABLE</option>
+                  <option value="MONITOR">MONITOR</option>
+                  <option value="ACCESSORIES">PHỤ KIỆN</option>
+                  <option value="ELECTRONICS">ĐIỆN TỬ</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Trọng lượng (g)</label>
+                <input type="number" id="edit_weightGram" name="weightGram" class="form-control rounded-3 bg-light border-0" value="0">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Ảnh mới (Nếu đổi)</label>
+                <input type="file" name="imageFile" class="form-control rounded-3 bg-light border-0" accept="image/*">
+              </div>
+            </div>
+            <div class="mt-2 text-center">
+              <p class="small text-muted mb-1">Ảnh hiện tại:</p>
+              <img id="edit_preview" src="" class="rounded border shadow-sm" style="height: 80px; display: none; margin: 0 auto;">
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-4 pt-0">
+            <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold shadow-sm">LƯU CẬP NHẬT</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    function openEditModal(sku) {
+      // Gọi API lên Controller để lấy dữ liệu sản phẩm
+      fetch('/admin/products/api/' + sku)
+              .then(response => response.json())
+              .then(data => {
+                // Đổ dữ liệu vào đúng các ô ID trong Form Sửa
+                document.getElementById('edit_skuCode').value = data.skuCode;
+                document.getElementById('edit_productName').value = data.productName;
+                document.getElementById('edit_basePrice').value = data.basePrice;
+                document.getElementById('edit_category').value = data.category;
+                document.getElementById('edit_weightGram').value = data.weightGram;
+
+                // Hiển thị ảnh cũ
+                const preview = document.getElementById('edit_preview');
+                if (data.imageUrl) {
+                  preview.src = data.imageUrl;
+                  preview.style.display = 'block';
+                } else {
+                  preview.style.display = 'none';
+                }
+
+                // Mở Modal lên cho Admin xem
+                const editModal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                editModal.show();
+              })
+              .catch(err => alert("Lỗi khi lấy dữ liệu sản phẩm: " + err));
+    }
+  </script>
+
+  <style>
+    .transition-row { transition: all 0.2s ease; }
+    .transition-row:hover { background-color: #f8faff !important; }
+  </style>
+</div>

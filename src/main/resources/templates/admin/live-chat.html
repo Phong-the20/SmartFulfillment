@@ -1,0 +1,170 @@
+<div th:fragment="main-content">
+    <div class="container-fluid px-4 py-4">
+        <h2 class="fw-bold text-dark mb-4">
+            <i class="fa-solid fa-headset text-primary me-2"></i>TRUNG TÂM HỖ TRỢ TRỰC TUYẾN
+        </h2>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="height: 70vh;">
+            <div class="row g-0 h-100">
+
+                <div class="col-md-3 bg-light border-end h-100 d-flex flex-column">
+                    <div class="p-3 border-bottom bg-white text-center">
+                        <h6 class="fw-bold mb-0">Khách hàng đang chờ</h6>
+                    </div>
+                    <div id="room-list" class="list-group list-group-flush overflow-auto flex-grow-1">
+                        <div class="p-4 text-center text-muted small">Đang tải danh sách...</div>
+                    </div>
+                </div>
+
+                <div class="col-md-9 d-flex flex-column h-100">
+                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center">
+                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <h6 id="chat-header-name" class="mb-0 fw-bold">Chưa chọn khách hàng</h6>
+                            <small class="text-success"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Online</small>
+                        </div>
+                    </div>
+
+                    <div id="admin-chat-messages" class="card-body overflow-auto p-4" style="background-color: #f8f9fa;">
+                        <div class="text-center text-muted small mt-5">
+                            <i class="fa-solid fa-comments fa-3x mb-3 opacity-25"></i>
+                            <p>Hãy chọn một khách hàng bên trái để bắt đầu chat</p>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top p-3">
+                        <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border">
+                            <input type="text" id="admin-chat-input" class="form-control border-0 px-4 fs-6" placeholder="Nhập câu trả lời..." disabled>
+                            <button id="admin-send-btn" class="btn btn-primary px-4 fw-bold" disabled>
+                                GỬI <i class="fa-solid fa-paper-plane ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script th:inline="javascript">
+        let adminStompClient = null;
+        let currentRoomId = null; // Lưu lại xem đang chat với khách nào
+        let currentSubscription = null; // Kênh lắng nghe hiện tại
+
+        const loggedUsername = [[${#authentication.name}]];
+        const isUserAdmin = [[${#authorization.expression('hasAuthority("ADMIN")')}]];
+        const adminDisplayName = (isUserAdmin ? "Admin" : "Staff") + " (" + loggedUsername + ")";
+
+        // 1. Kết nối mạng & Liên tục quét tìm khách hàng mới
+        function connectAdmin() {
+            let socket = new SockJS('/ws-smarttech');
+            adminStompClient = Stomp.over(socket);
+            adminStompClient.connect({}, function (frame) {
+                loadActiveRooms(); // Tải danh sách ngay khi vào web
+                setInterval(loadActiveRooms, 5000); // Tự động quét khách mới mỗi 5 giây
+            });
+        }
+
+        function loadActiveRooms() {
+            fetch('/api/chat/rooms')
+                .then(response => response.json())
+                .then(rooms => {
+                    let roomListHtml = '';
+                    if (rooms.length === 0) {
+                        roomListHtml = '<div class="p-4 text-center text-muted small">Chưa có khách hàng nào.</div>';
+                    } else {
+                        rooms.forEach(room => {
+                            // DỊCH NGƯỢC TÊN TỪ DATABASE RA TIẾNG VIỆT ĐẸP
+                            let displayRoom = decodeURIComponent(room);
+                            let isActive = (room === currentRoomId) ? 'active bg-primary text-white shadow-sm' : 'list-group-item-action text-dark';
+
+                            roomListHtml += `
+                                <button class="list-group-item border-0 border-bottom p-3 ${isActive}" onclick="selectRoom('${room}')">
+                                    <div class="fw-bold mb-1">${displayRoom}</div>
+                                    <small class="${(room === currentRoomId) ? 'text-white-50' : 'text-muted'}"><i class="fa-regular fa-envelope me-1"></i>Đang yêu cầu hỗ trợ</small>
+                                </button>
+                            `;
+                        });
+                    }
+                    document.getElementById('room-list').innerHTML = roomListHtml;
+                });
+        }
+
+        // 3. Xử lý khi Admin chọn 1 Khách hàng
+        function selectRoom(roomId) {
+            currentRoomId = roomId;
+            loadActiveRooms();
+
+            // Dịch ngược tên để hiện lên Header
+            document.getElementById('chat-header-name').innerText = decodeURIComponent(roomId);
+            document.getElementById('admin-chat-input').disabled = false;
+            document.getElementById('admin-send-btn').disabled = false;
+
+            if (currentSubscription) {
+                currentSubscription.unsubscribe();
+            }
+
+            // ĐÃ XÓA ENCODE Ở ĐÂY
+            currentSubscription = adminStompClient.subscribe('/topic/messages/' + roomId, function (response) {
+                let msg = JSON.parse(response.body);
+                showAdminChatMessage(msg);
+            });
+
+            // API HTTP vẫn cần encode
+            fetch('/api/chat/history/' + encodeURIComponent(roomId))
+                .then(response => response.json())
+                .then(data => {
+                    let chatMessages = document.getElementById('admin-chat-messages');
+                    chatMessages.innerHTML = '<div class="text-center text-muted small mb-4 bg-white rounded-pill d-inline-block px-3 py-1 mx-auto shadow-sm">Bắt đầu phiên hỗ trợ với ' + decodeURIComponent(roomId) + '</div>';
+                    data.forEach(msg => showAdminChatMessage(msg));
+                });
+        }
+
+        // 4. Admin gửi tin nhắn
+        function sendAdminMessage() {
+            if (!currentRoomId) return;
+
+            let input = document.getElementById('admin-chat-input');
+            let content = input.value.trim();
+            if (content && adminStompClient) {
+                let chatMessage = {
+                    sender: adminDisplayName,
+                    content: content
+                };
+                // ĐÃ XÓA ENCODE Ở ĐÂY
+                adminStompClient.send("/app/chat.send/" + currentRoomId, {}, JSON.stringify(chatMessage));
+                input.value = '';
+            }
+        }
+
+        // 5. In tin nhắn ra màn hình
+        function showAdminChatMessage(msg) {
+            let chatMessages = document.getElementById('admin-chat-messages');
+            let isMe = msg.sender === adminDisplayName;
+
+            let msgHtml = `
+                <div class="d-flex flex-column ${isMe ? 'align-items-end' : 'align-items-start'} mb-3">
+                    <span class="small text-muted fw-bold mb-1" style="font-size: 0.75rem;">
+                        ${isMe ? 'Bạn' : '<i class="fa-solid fa-user text-primary me-1"></i> ' + msg.sender} - ${msg.timestamp}
+                    </span>
+                    <div class="${isMe ? 'bg-primary text-white' : 'bg-white border text-dark'} p-3 rounded-4 shadow-sm" style="max-width: 75%; font-size: 0.95rem;">
+                        ${msg.content}
+                    </div>
+                </div>
+            `;
+            chatMessages.innerHTML += msgHtml;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        document.getElementById('admin-send-btn').addEventListener('click', sendAdminMessage);
+        document.getElementById('admin-chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendAdminMessage();
+        });
+
+        connectAdmin();
+    </script>
+</div>

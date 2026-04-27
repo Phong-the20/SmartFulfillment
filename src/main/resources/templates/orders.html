@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Đơn hàng của tôi | SmartTech')}"></head>
+
+<body style="background-color: #f8f9fa;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5" style="min-height: 70vh;">
+    <div class="d-flex align-items-center mb-5">
+        <div class="bg-primary p-3 rounded-4 text-white me-3 shadow-sm">
+            <i class="fa-solid fa-clock-rotate-left fa-xl"></i>
+        </div>
+        <div>
+            <h2 class="fw-bold mb-0 text-dark text-uppercase">Lịch sử đơn hàng</h2>
+            <p class="text-muted mb-0">Theo dõi tiến độ đơn hàng của ông tại SmartTech</p>
+        </div>
+    </div>
+
+    <div th:if="${errorMsg}" class="alert alert-danger rounded-4 border-0 shadow-sm mb-4">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i> <span th:text="${errorMsg}"></span>
+    </div>
+
+    <div th:if="${#lists.isEmpty(orders)}" class="text-center py-5 card border-0 shadow-sm rounded-5">
+        <div class="py-4">
+            <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="120" class="mb-4 opacity-25">
+            <h4 class="text-secondary fw-bold">Ông chưa có đơn hàng nào cả!</h4>
+            <a th:href="@{/products}" class="btn btn-primary rounded-pill px-5 py-2 mt-2 fw-bold shadow">MUA SẮM NGAY</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12" th:each="o : ${orders}">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden card-order">
+                <div class="card-body p-0">
+                    <div class="row g-0 align-items-center text-center text-md-start">
+
+                        <div class="col-md-3 p-4 border-end-md bg-light-subtle">
+                            <span class="small text-muted d-block mb-1 text-uppercase fw-bold" style="letter-spacing: 1px;">Mã đơn hàng</span>
+                            <span class="fw-bold text-primary fs-5" th:text="${o.orderId}">#ORD-123</span>
+                            <div class="mt-2 text-muted small">
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                <span th:text="${#temporals.format(o.orderDate, 'dd/MM/yyyy')}">23/04/2026</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 p-4 border-end-md">
+                            <span class="small text-muted d-block mb-1 text-uppercase fw-bold">Tổng thanh toán</span>
+                            <span class="fw-bold fs-4 text-dark" th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                        </div>
+
+                        <div class="col-md-4 p-4 text-center">
+                            <span class="small text-muted d-block mb-2 text-uppercase fw-bold">Trạng thái</span>
+
+                            <span th:if="${o.status.name() == 'PAID'}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-money-bill-wave me-1"></i> [[${o.status.displayName}]]
+                            </span>
+                            <span th:if="${o.status.name() == 'PENDING'}" class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-clock me-1"></i> [[${o.status.displayName}]]
+                            </span>
+                            <span th:if="${o.status.name() == 'SHIPPING'}" class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-truck-fast me-1"></i> [[${o.status.displayName}]]
+                            </span>
+                            <span th:if="${o.status.name() == 'COMPLETED'}" class="badge bg-success text-white rounded-pill px-3 py-2 shadow-sm">
+                                <i class="fa-solid fa-circle-check me-1"></i> [[${o.status.displayName}]]
+                            </span>
+                            <span th:if="${o.status.name() == 'CANCELLED'}" class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                                <i class="fa-solid fa-ban me-1"></i> [[${o.status.displayName}]]
+                            </span>
+                        </div>
+
+                        <div class="col-md-2 p-4 text-md-end text-center">
+                            <a th:href="@{/orders/detail/{id}(id=${o.orderId})}"
+                               class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm btn-detail">
+                                Chi tiết <i class="fa-solid fa-chevron-right ms-1 small"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .card-order { transition: all 0.3s ease; }
+    .card-order:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important; }
+    .badge { font-size: 0.85rem; font-weight: 600; }
+    .btn-detail:hover { transform: scale(1.05); background-color: #000; }
+    @media (min-width: 768px) { .border-end-md { border-right: 1px solid #eee !important; } }
+</style>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+</body>
+</html>

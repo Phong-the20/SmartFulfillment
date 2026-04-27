@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Thanh Toán | SmartTech Store')}"></head>
+
+<body style="background-color: #f4f6f9;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5">
+  <form th:action="@{/checkout}" method="post" th:object="${order}" id="checkoutForm">
+    <div class="row g-4">
+
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm p-4 p-md-5 rounded-5 mb-4">
+          <h4 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-truck-fast me-2"></i>Thông tin giao hàng</h4>
+
+          <div th:if="${errorMsg}" class="alert alert-danger border-0 rounded-pill small mb-4 shadow-sm">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> <span th:text="${errorMsg}"></span>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-bold small">HỌ VÀ TÊN NGƯỜI NHẬN</label>
+              <input type="text" th:field="*{fullname}" class="form-control rounded-pill px-4 bg-light border-0 py-2"
+                     pattern="^[a-zA-ZÀ-ỹ\s]+$" title="Họ tên chỉ được chứa chữ cái và khoảng trắng" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">SỐ ĐIỆN THOẠI</label>
+              <input type="text" th:field="*{phone}" class="form-control rounded-pill px-4 bg-light border-0 py-2"
+                     pattern="^0\d{9}$" title="Số điện thoại phải có 10 số và bắt đầu bằng số 0" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small">EMAIL XÁC NHẬN</label>
+              <input type="email" th:field="*{email}" class="form-control rounded-pill px-4 bg-light border-0 py-2" required>
+            </div>
+          </div>
+
+          <h5 class="fw-bold mt-5 mb-3 fs-6 text-dark"><i class="fa-solid fa-location-dot me-2"></i>ĐỊA CHỈ NHẬN HÀNG</h5>
+
+          <div class="card bg-light border-0 p-3 mb-3 rounded-4 address-card active-card">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="addressOption" id="defaultAddr" checked onchange="toggleAddressForm(false)">
+              <label class="form-check-label fw-bold text-dark cursor-pointer" for="defaultAddr">
+                Giao đến địa chỉ mặc định
+              </label>
+              <p class="text-muted small mb-0 mt-1 ms-1" id="defaultAddrValue" th:text="*{shippingAddress}"></p>
+            </div>
+          </div>
+
+          <div class="card bg-light border-0 p-3 rounded-4 address-card">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="addressOption" id="newAddr" onchange="toggleAddressForm(true)">
+              <label class="form-check-label fw-bold text-dark cursor-pointer" for="newAddr">
+                Giao đến địa chỉ khác
+              </label>
+            </div>
+
+            <div id="newAddrForm" style="display: none;" class="mt-3">
+              <div class="row g-2 mb-2">
+                <div class="col-md-4"><select class="form-select border-0 rounded-4 py-2" id="p_chk"><option value="">Tỉnh/Thành</option></select></div>
+                <div class="col-md-4"><select class="form-select border-0 rounded-4 py-2" id="d_chk" disabled><option value="">Quận/Huyện</option></select></div>
+                <div class="col-md-4"><select class="form-select border-0 rounded-4 py-2" id="w_chk" disabled><option value="">Phường/Xã</option></select></div>
+              </div>
+              <input type="text" class="form-control border-0 rounded-4 py-2" id="s_chk" placeholder="Số nhà, tên đường...">
+            </div>
+          </div>
+
+          <input type="hidden" th:field="*{shippingAddress}" id="finalAddress">
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 p-md-5 rounded-5">
+          <h4 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-credit-card me-2"></i>Thanh toán & Vận chuyển</h4>
+
+          <h5 class="fw-bold mb-3 fs-6">ĐƠN VỊ VẬN CHUYỂN</h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="card bg-light border-0 p-3 rounded-4 cursor-pointer radio-card h-100">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="shippingMethod" value="STANDARD" checked>
+                  <span class="fw-bold"><i class="fa-solid fa-truck text-success me-2"></i>Giao tiêu chuẩn</span>
+                  <div class="small text-muted mt-1 ms-4">Từ 3-5 ngày (Miễn phí)</div>
+                </div>
+              </label>
+            </div>
+            <div class="col-md-6">
+              <label class="card bg-light border-0 p-3 rounded-4 cursor-pointer radio-card h-100">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="shippingMethod" value="EXPRESS">
+                  <span class="fw-bold"><i class="fa-solid fa-bolt text-warning me-2"></i>Giao hỏa tốc</span>
+                  <div class="small text-muted mt-1 ms-4">Trong 24h (30.000 ₫)</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <h5 class="fw-bold mb-3 fs-6">HÌNH THỨC THANH TOÁN</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="card bg-light border-0 p-3 rounded-4 cursor-pointer radio-card h-100">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="paymentMethod" value="COD" checked>
+                  <span class="fw-bold"><i class="fa-solid fa-money-bill-wave text-success me-2"></i>Tiền mặt (COD)</span>
+                </div>
+              </label>
+            </div>
+            <div class="col-md-6">
+              <label class="card bg-light border-0 p-3 rounded-4 cursor-pointer radio-card h-100">
+                <div class="form-check p-3 border rounded-4 mb-3">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="MOMO">
+                  <label class="form-check-label d-flex align-items-center" for="momo">
+                    <img th:src="@{/assets/images/momo-logo.png}" width="30" height="30" class="me-2" style="object-fit: contain;">
+                    Thanh toán qua Ví MoMo
+                  </label>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-lg p-4 rounded-5 sticky-top" style="top: 100px;">
+          <h4 class="fw-bold mb-4 text-dark">Đơn hàng của bạn</h4>
+
+          <div class="order-items overflow-auto mb-4 pe-2" style="max-height: 280px;">
+            <div class="d-flex align-items-center mb-3" th:each="item : ${cartItems}">
+              <div class="bg-primary-subtle rounded-3 p-2 me-3 text-primary">
+                <i class="fa-solid fa-box fa-lg"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 180px;" th:text="${item.productName}">Tên SP</h6>
+                <small class="text-muted" th:text="'Số lượng: ' + ${item.quantity}">SL: 1</small>
+              </div>
+              <div class="fw-bold text-dark" th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></div>
+            </div>
+          </div>
+
+          <div class="mb-4 position-relative">
+            <label class="form-label small fw-bold text-muted">MÃ GIẢM GIÁ</label>
+            <div class="input-group">
+              <input type="text" id="voucherInput" class="form-control border-0 bg-light py-2 px-3"
+                     style="border-radius: 20px 0 0 20px;" placeholder="Nhập hoặc chọn mã..."
+                     data-bs-toggle="dropdown" aria-expanded="false" autocomplete="off">
+
+              <button class="btn btn-dark px-4 fw-bold" style="border-radius: 0 20px 20px 0;" type="button" onclick="applyVoucher()">ÁP DỤNG</button>
+
+              <ul class="dropdown-menu w-100 border-0 shadow-lg rounded-4 p-2 mt-2">
+                <li th:if="${#lists.isEmpty(availableVouchers)}">
+                  <span class="dropdown-item text-muted small text-center py-2">Chưa có mã giảm giá nào phù hợp với đơn hàng này.</span>
+                </li>
+                <li th:each="v : ${availableVouchers}">
+                  <a class="dropdown-item rounded-3 py-2 px-3 mb-1 d-flex justify-content-between align-items-center cursor-pointer"
+                     style="background-color: #f8f9fa;"
+                     th:data-code="${v.voucherCode}"
+                     onclick="selectVoucher(this.getAttribute('data-code'))">
+                    <div>
+                      <div class="fw-bold text-primary mb-1">
+                        <i class="fa-solid fa-ticket me-1"></i> <span th:text="${v.voucherCode}"></span>
+                      </div>
+                      <div class="small text-muted" style="font-size: 0.8rem;" th:text="${v.description}"></div>
+                    </div>
+                    <div class="fw-bold text-success text-end">
+                      <span th:if="${v.discountType == 'PERCENT'}">-[[${v.discountValue}]]%</span>
+                      <span th:if="${v.discountType == 'FIXED'}">-[[${#numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT')}]] ₫</span>
+                    </div>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div id="voucherMsg" class="small mt-2" style="display:none"></div>
+            <input type="hidden" name="appliedVoucherCode" id="appliedVoucherCode">
+          </div>
+
+          <div class="border-top pt-3 mb-3">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted small">Tạm tính:</span>
+              <span class="fw-bold small" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 text-danger" id="discountRow">
+              <span class="small">Giảm giá:</span>
+              <span class="fw-bold small" id="discountAmount">0 ₫</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted small">Phí vận chuyển:</span>
+              <span class="fw-bold small text-success" id="shipFeeText">Miễn phí</span>
+            </div>
+          </div>
+
+          <div class="border-top pt-3 mb-4 text-end">
+            <span class="fw-bold text-muted small me-2">TỔNG CỘNG:</span>
+            <h3 class="fw-bold text-primary mb-0" id="finalTotalText" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + ' ₫'" th:data-base="${total}"></h3>
+          </div>
+
+          <div class="p-3 rounded-4 bg-info-subtle border-0 mb-4">
+            <p class="small text-info-emphasis mb-0">
+              <i class="fa-solid fa-circle-info me-1"></i> Vui lòng kiểm tra kỹ SĐT và địa chỉ để tránh thất lạc hàng hóa.
+            </p>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-lg fs-5 transform-active">
+            XÁC NHẬN ĐẶT HÀNG <i class="fa-solid fa-chevron-right ms-2"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+<div th:replace="~{fragments/scripts :: scripts-fragment}"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script>
+  // 1. QUẢN LÝ ĐỊA CHỈ
+  const defaultAddrVal = document.getElementById("defaultAddrValue").innerText;
+  const finalAddrInput = document.getElementById("finalAddress");
+  const addrForm = document.getElementById("newAddrForm");
+
+  finalAddrInput.value = defaultAddrVal;
+
+  function toggleAddressForm(isNew) {
+    const selects = addrForm.querySelectorAll('select, input');
+    if(isNew) {
+      addrForm.style.display = "block";
+      selects.forEach(el => el.setAttribute("required", "required"));
+      updateFinal();
+    } else {
+      addrForm.style.display = "none";
+      selects.forEach(el => el.removeAttribute("required"));
+      finalAddrInput.value = defaultAddrVal;
+    }
+  }
+
+  const api_host = "https://provinces.open-api.vn/api/";
+  let p = document.getElementById("p_chk"), d = document.getElementById("d_chk"), w = document.getElementById("w_chk"), s = document.getElementById("s_chk");
+
+  axios.get(api_host + "?depth=1").then(r => { r.data.forEach(x => p.options[p.options.length] = new Option(x.name, x.code)); });
+  p.onchange = () => {
+    d.length = 1; d.disabled = false; w.length = 1; w.disabled = true;
+    axios.get(api_host + "p/" + p.value + "?depth=2").then(r => { r.data.districts.forEach(x => d.options[d.options.length] = new Option(x.name, x.code)); });
+    updateFinal();
+  };
+  d.onchange = () => {
+    w.length = 1; w.disabled = false;
+    axios.get(api_host + "d/" + d.value + "?depth=2").then(r => { r.data.wards.forEach(x => w.options[w.options.length] = new Option(x.name, x.code)); });
+    updateFinal();
+  };
+  w.onchange = s.oninput = updateFinal;
+
+  function updateFinal() {
+    if(document.getElementById("newAddr").checked && p.value && d.value && w.value) {
+      finalAddrInput.value = s.value + ", " + w.options[w.selectedIndex].text + ", " + d.options[d.selectedIndex].text + ", " + p.options[p.selectedIndex].text;
+    }
+  }
+
+  // 2. TÍNH TOÁN TỔNG TIỀN (GỒM PHÍ SHIP VÀ VOUCHER)
+  const shipRadios = document.querySelectorAll('input[name="shippingMethod"]');
+  const totalEl = document.getElementById("finalTotalText");
+  const baseVal = parseInt(totalEl.getAttribute("data-base"));
+
+  let currentShipFee = 0;
+  let currentDiscount = 0;
+
+  function updateDisplayTotal() {
+    let finalTotal = baseVal + currentShipFee - currentDiscount;
+    if (finalTotal < 0) finalTotal = 0;
+    totalEl.innerText = new Intl.NumberFormat('en-US').format(finalTotal) + ' ₫';
+  }
+
+  // Xử lý Phí vận chuyển
+  shipRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      currentShipFee = (this.value === 'EXPRESS') ? 30000 : 0;
+      document.getElementById("shipFeeText").innerText = currentShipFee === 0 ? "Miễn phí" : "30,000 ₫";
+      updateDisplayTotal();
+    });
+  });
+
+  // Hàm xử lý khi khách click chọn mã từ menu gợi ý
+  function selectVoucher(code) {
+    document.getElementById('voucherInput').value = code;
+    applyVoucher();
+  }
+
+  // Xử lý Áp mã giảm giá (Ajax)
+  function applyVoucher() {
+    const code = document.getElementById('voucherInput').value.trim(); // .trim() để xóa khoảng trắng dư thừa
+    const msgDiv = document.getElementById('voucherMsg');
+
+    // 🚀 NẾU KHÁCH XÓA TRẮNG Ô VÀ BẤM ÁP DỤNG -> RESET LẠI TỪ ĐẦU
+    if(!code) {
+      currentDiscount = 0;
+      document.getElementById('discountAmount').innerText = '0 ₫';
+      document.getElementById('appliedVoucherCode').value = '';
+
+      msgDiv.style.display = 'block';
+      msgDiv.className = 'small mt-2 text-danger';
+      msgDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i> Vui lòng nhập hoặc chọn mã giảm giá!';
+
+      updateDisplayTotal(); // Gọi lại hàm tính tổng để tiền quay về như cũ
+      return; // Dừng ở đây, không gọi API nữa
+    }
+
+    // Nếu có mã thì mới gọi API kiểm tra
+    fetch(`/api/vouchers/apply?code=${code}&totalAmount=${baseVal}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+              msgDiv.style.display = 'block';
+              if(data.success) {
+                msgDiv.className = 'small mt-2 text-success fw-bold';
+                msgDiv.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i> ' + data.message;
+
+                currentDiscount = data.discount;
+                document.getElementById('discountAmount').innerText = '-' + new Intl.NumberFormat('en-US').format(currentDiscount) + ' ₫';
+                document.getElementById('appliedVoucherCode').value = code;
+              } else {
+                msgDiv.className = 'small mt-2 text-danger';
+                msgDiv.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i> ' + data.message;
+
+                currentDiscount = 0; // Áp sai mã cũng reset tiền giảm về 0
+                document.getElementById('discountAmount').innerText = '0 ₫';
+                document.getElementById('appliedVoucherCode').value = '';
+              }
+              updateDisplayTotal();
+            })
+            .catch(err => {
+              console.error("Lỗi:", err);
+              alert("Có lỗi xảy ra khi áp mã!");
+            });
+  }
+</script>
+
+<style>
+  .radio-card { border: 2px solid transparent !important; transition: 0.2s; }
+  label:has(input[type="radio"]:checked) {
+    border-color: #0d6efd !important;
+    background-color: #f0f7ff !important;
+  }
+  .cursor-pointer { cursor: pointer; }
+  .transform-active:active { transform: scale(0.98); }
+  .address-card { transition: 0.3s; border: 2px solid transparent !important; }
+  .address-card:has(input:checked) { border-color: #0d6efd !important; background-color: #fff !important; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important; }
+</style>
+
+</body>
+</html>

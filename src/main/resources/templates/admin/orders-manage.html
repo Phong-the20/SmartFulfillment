@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Quản lý đơn hàng | SmartTech Admin</title>
+</head>
+<body>
+
+<main th:fragment="main-content" class="container-fluid px-4 py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">
+            <i class="fa-solid fa-boxes-packing me-2 text-primary"></i>QUẢN LÝ ĐƠN HÀNG
+        </h2>
+        <div class="badge bg-primary rounded-pill px-4 py-2 shadow-sm">
+            <span class="fw-bold" th:text="${#lists.size(orders)}">0</span> đơn hàng hệ thống
+        </div>
+    </div>
+
+    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+        <i class="fa-solid fa-circle-check me-2"></i>
+        <span th:text="${successMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+        <span th:text="${errorMsg}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-secondary text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-4 py-3">Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Tổng tiền</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Thao tác nhanh</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="o : ${orders}" class="border-bottom">
+                        <td class="ps-4 fw-bold text-primary" th:text="${o.orderId}">#ORD-123</td>
+                        <td>
+                            <div class="fw-bold text-dark" th:text="${o.fullname}">Trần Thế Phong</div>
+                            <div class="small text-muted" th:text="${o.email}">phong@gmail.com</div>
+                        </td>
+                        <td class="small" th:text="${#temporals.format(o.orderDate, 'dd/MM/yyyy HH:mm')}">23/04/2026</td>
+                        <td class="fw-bold text-danger" th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+
+                        <td class="text-center">
+                                <span th:if="${o.status.name() == 'PAID'}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-money-bill-wave me-1"></i> [[${o.status.displayName}]]
+                                </span>
+                            <span th:if="${o.status.name() == 'PENDING'}" class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-clock me-1"></i> [[${o.status.displayName}]]
+                                </span>
+                            <span th:if="${o.status.name() == 'SHIPPING'}" class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-truck-fast me-1"></i> [[${o.status.displayName}]]
+                                </span>
+                            <span th:if="${o.status.name() == 'COMPLETED'}" class="badge bg-success text-white rounded-pill px-3 py-2 shadow-sm">
+                                    <i class="fa-solid fa-circle-check me-1"></i> [[${o.status.displayName}]]
+                                </span>
+                            <span th:if="${o.status.name() == 'CANCELLED'}" class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-ban me-1"></i> [[${o.status.displayName}]]
+                                </span>
+                        </td>
+
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+
+                                <a th:if="${o.status.name() == 'PENDING' || o.status.name() == 'PAID'}"
+                                   th:href="@{/admin/orders/shipping/{id}(id=${o.orderId})}"
+                                   class="btn btn-outline-info btn-sm rounded-3 shadow-sm" title="Bắt đầu giao hàng">
+                                    <i class="fa-solid fa-truck"></i>
+                                </a>
+
+                                <a th:if="${o.status.name() == 'SHIPPING'}"
+                                   th:href="@{/admin/orders/complete/{id}(id=${o.orderId})}"
+                                   class="btn btn-outline-success btn-sm rounded-3 shadow-sm" title="Xác nhận hoàn thành">
+                                    <i class="fa-solid fa-check"></i>
+                                </a>
+
+                                <a th:if="${o.status.name() == 'PENDING'}"
+                                   th:href="@{/admin/orders/cancel/{id}(id=${o.orderId})}"
+                                   class="btn btn-outline-danger btn-sm rounded-3 shadow-sm"
+                                   onclick="return confirm('Ông chắc chắn muốn từ chối đơn hàng này không?')" title="Từ chối">
+                                    <i class="fa-solid fa-ban"></i>
+                                </a>
+
+                                <a th:href="@{/orders/detail/{id}(id=${o.orderId})}"
+                                   class="btn btn-light btn-sm rounded-3 border shadow-sm" title="Xem chi tiết">
+                                    <i class="fa-solid fa-eye text-dark"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(orders)}">
+                        <td colspan="6" class="text-center py-5 text-muted small">
+                            <i class="fa-solid fa-inbox d-block mb-2 fs-2 opacity-25"></i>
+                            Không có đơn hàng nào cần xử lý.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.02);
+    }
+    .badge { font-weight: 600; letter-spacing: 0.3px; }
+    .btn-sm { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
+    .shadow-sm { box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important; }
+</style>
+
+</body>
+</html>

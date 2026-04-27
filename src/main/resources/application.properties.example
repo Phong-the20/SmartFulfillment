@@ -1,0 +1,47 @@
+# ==========================================
+# 1. C?U HÌNH K?T N?I SQL SERVER (CHÍNH XÁC)
+# ==========================================
+spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=SmartFulfillmentDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
+spring.datasource.username=sa
+spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+# ==========================================
+# 2. C?U HÌNH JPA / HIBERNATE CHO SQL SERVER
+# ==========================================
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
+spring.jpa.properties.hibernate.format_sql=true
+
+# ==========================================
+# 3. C?U HÌNH ENCODING (TI?NG VI?T CHU?N)
+# ==========================================
+server.servlet.encoding.charset=UTF-8
+server.servlet.encoding.enabled=true
+server.servlet.encoding.force=true
+spring.thymeleaf.encoding=UTF-8
+
+# ==========================================
+# 4. CÁC C?U HÌNH KHÁC
+# ==========================================
+spring.security.oauth2.client.registration.google.client-id=YOUR_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_GOOGLE_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=profile,email
+
+# --- CONFIG GMAIL CHU?N C?A ÔNG ---
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=tranthephong208@gmail.com
+spring.mail.password=YOUR_GMAIL_APP_PASSWORD
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+
+# --- CLOUDINARY & SWAGGER ---
+cloudinary.cloud_name=dcd1enaqz
+cloudinary.api_key=426756646495939
+cloudinary.api_secret=YOUR_CLOUDINARY_SECRET
+
+spring.jackson.default-property-inclusion=non_null
+springdoc.swagger-ui.path=/swagger-ui.html

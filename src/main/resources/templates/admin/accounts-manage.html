@@ -1,0 +1,109 @@
+<div th:fragment="main-content">
+    <div class="container-fluid px-4 py-4">
+        <h2 class="fw-bold text-dark mb-4">
+            <i class="fa-solid fa-users-gear text-primary me-2"></i>QUẢN LÝ PHÂN QUYỀN
+        </h2>
+
+        <div th:if="${successMsg}" class="alert alert-success border-0 rounded-pill shadow-sm mb-4">
+            <i class="fa-solid fa-check-circle me-2"></i><span th:text="${successMsg}"></span>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Tên tài khoản</th>
+                        <th>Họ tên</th>
+                        <th>Quyền hiện tại</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="acc : ${accounts}" th:with="isStaff=${#lists.toList(acc.roles).?[name == 'STAFF'].size() > 0}">
+                        <td class="ps-4 fw-bold" th:text="${acc.username}">Username</td>
+                        <td th:text="${acc.fullName}">FullName</td>
+                        <td>
+                            <span th:if="${isStaff}" class="badge bg-info text-dark rounded-pill px-3">NHÂN VIÊN</span>
+                            <span th:unless="${isStaff}" class="badge bg-secondary rounded-pill px-3">NGƯỜI DÙNG</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-2"
+                                    th:onclick="showStaffDetail([[${acc.username}]], [[${acc.fullName}]], [[${acc.email}]], [[${acc.phone}]], [[${acc.address}]], [[${acc.isVerified}]])">
+                                <i class="fa-solid fa-eye me-1"></i> Xem
+                            </button>
+
+                            <a th:href="@{/admin/accounts/change-role/{u}(u=${acc.username})}"
+                               class="btn btn-sm rounded-pill px-3 shadow-sm"
+                               th:classappend="${!isStaff ? 'btn-success' : 'btn-outline-danger'}">
+                                <i th:class="${!isStaff ? 'fa-solid fa-arrow-up' : 'fa-solid fa-arrow-down'} + ' me-1'"></i>
+                                <span th:text="${!isStaff ? 'Lên Staff' : 'Bỏ Staff'}"></span>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="staffDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-id-card me-2"></i>Hồ sơ tài khoản</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-2"
+                             style="width: 70px; height: 70px;" id="modalAvatar">
+                            P
+                        </div>
+                        <h4 class="mt-3 mb-0 fw-bold" id="modalFullName">Họ Tên</h4>
+                        <p class="text-muted" id="modalUsername">@username</p>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 border-bottom pb-2">
+                            <label class="text-muted small text-uppercase">Email</label>
+                            <div class="fw-bold" id="modalEmail">email@fpt.edu.vn</div>
+                        </div>
+                        <div class="col-6 border-bottom pb-2 border-end">
+                            <label class="text-muted small text-uppercase">Số điện thoại</label>
+                            <div class="fw-bold" id="modalPhone">090xxxxxxx</div>
+                        </div>
+                        <div class="col-6 border-bottom pb-2">
+                            <label class="text-muted small text-uppercase">Trạng thái</label>
+                            <div id="modalStatus">Đã xác minh</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small text-uppercase">Địa chỉ</label>
+                            <div class="fw-bold" id="modalAddress">Địa chỉ nhận hàng</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showStaffDetail(username, fullName, email, phone, address, isVerified) {
+            document.getElementById('modalAvatar').innerText = fullName.charAt(0).toUpperCase();
+            document.getElementById('modalFullName').innerText = fullName;
+            document.getElementById('modalUsername').innerText = '@' + username;
+            document.getElementById('modalEmail').innerText = email;
+            document.getElementById('modalPhone').innerText = phone || 'Chưa cập nhật';
+            document.getElementById('modalAddress').innerText = address || 'Chưa cập nhật';
+
+            const statusBadge = isVerified
+                ? '<span class="badge bg-success-subtle text-success border border-success rounded-pill">Đã xác minh</span>'
+                : '<span class="badge bg-warning-subtle text-warning border border-warning rounded-pill">Chưa xác minh</span>';
+            document.getElementById('modalStatus').innerHTML = statusBadge;
+
+            new bootstrap.Modal(document.getElementById('staffDetailModal')).show();
+        }
+    </script>
+</div>

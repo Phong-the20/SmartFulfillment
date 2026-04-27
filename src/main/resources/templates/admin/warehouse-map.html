@@ -1,0 +1,239 @@
+<div th:fragment="main-content">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; width: 100%; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1;}
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
+        .bounce-animation { animation: bounce 1s ease; }
+        .list-group-item-action { cursor: pointer; transition: 0.3s; }
+        .list-group-item-action:hover { background-color: #f8f9fa; }
+        .action-btn { transition: 0.2s; padding: 4px 8px; cursor: pointer; border-radius: 6px; }
+        .edit-btn:hover { background-color: #fff9e6; color: #ffc107 !important; }
+        .delete-btn:hover { background-color: #fff5f5; color: #dc3545 !important; }
+    </style>
+
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark mb-0"><i class="fa-solid fa-map-location-dot text-primary me-2"></i>Bản đồ Chuỗi cung ứng SmartTech</h3>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#addWarehouseModal"><i class="fa-solid fa-plus me-2"></i>THÊM KHO MỚI</button>
+        </div>
+
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 mb-4"><i class="fa-solid fa-circle-check me-2"></i><span th:text="${successMsg}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 mb-4"><i class="fa-solid fa-triangle-exclamation me-2"></i><span th:text="${errorMsg}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+
+        <div class="row">
+            <div class="col-lg-9"><div id="map"></div></div>
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-primary text-white fw-bold py-3 small text-uppercase"><i class="fa-solid fa-boxes-stacked me-2"></i> Chi tiết tồn kho</div>
+                    <div class="card-body p-2" id="sidebar-content" style="height: 350px; overflow-y: auto;">
+                        <div class="text-center text-muted py-5"><i class="fa-solid fa-hand-pointer fa-2x mb-2"></i><p class="small">Chọn kho trên bản đồ</p></div>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-dark text-white fw-bold py-2 small text-uppercase"><i class="fa-solid fa-location-arrow me-2"></i> Truy cập nhanh</div>
+                    <div class="list-group list-group-flush" id="warehouse-list-quick" style="height: 200px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="transferStockModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <form th:action="@{/admin/warehouses/transfer}" method="post">
+                    <div class="modal-header bg-info text-white rounded-top-4 border-0">
+                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-truck-ramp-box me-2"></i>Điều phối hàng hóa</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="tf_fromWarehouseId" name="fromWarehouseId">
+                        <input type="hidden" id="tf_skuCode" name="skuCode">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Sản phẩm điều chuyển</label>
+                            <input type="text" id="tf_productDisplay" class="form-control bg-light border-0" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Đến kho đích</label>
+                            <select name="toWarehouseId" id="tf_toWarehouseId" class="form-select bg-light border-0" required>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Số lượng (Tối đa: <span id="tf_maxQty" class="text-danger">0</span>)</label>
+                            <input type="number" name="quantity" id="tf_quantity" class="form-control bg-light border-0" min="1" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="submit" class="btn btn-info w-100 rounded-pill fw-bold text-white shadow-sm">XÁC NHẬN ĐIỀU PHỐI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addWarehouseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <form th:action="@{/admin/warehouses/add}" method="post">
+                    <div class="modal-header bg-primary text-white rounded-top-4 border-0">
+                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle me-2"></i>Thêm Kho Mới</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Tên kho</label>
+                            <input type="text" name="name" class="form-control bg-light border-0" placeholder="VD: Kho Tân Bình" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small fw-bold">Vĩ độ (Latitude)</label>
+                                <input type="number" step="any" name="latitude" class="form-control bg-light border-0" placeholder="10.8..." required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small fw-bold">Kinh độ (Longitude)</label>
+                                <input type="number" step="any" name="longitude" class="form-control bg-light border-0" placeholder="106.6..." required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm">LƯU KHO MỚI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editWarehouseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <form th:action="@{/admin/warehouses/edit}" method="post">
+                    <input type="hidden" id="edit_warehouseId" name="warehouseId">
+                    <div class="modal-header bg-warning text-dark rounded-top-4 border-0">
+                        <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square me-2"></i>Cập nhật Kho</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Tên kho</label>
+                            <input type="text" id="edit_name" name="name" class="form-control bg-light border-0" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small fw-bold">Vĩ độ (Latitude)</label>
+                                <input type="number" step="any" id="edit_latitude" name="latitude" class="form-control bg-light border-0" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small fw-bold">Kinh độ (Longitude)</label>
+                                <input type="number" step="any" id="edit_longitude" name="longitude" class="form-control bg-light border-0" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold shadow-sm">LƯU THAY ĐỔI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script th:inline="javascript">
+        var markersMap = {};
+        var warehousesData = [];
+        var map = L.map('map').setView([10.0125, 105.7331], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        function flyToWH(lat, lng, id) {
+            map.flyTo([lat, lng], 15, { animate: true, duration: 1.5 });
+            const marker = markersMap[id];
+            if (marker) { marker.openPopup(); marker.fire('click'); }
+        }
+
+        function openTransferModal(whId, sku, pName, qty) {
+            document.getElementById('tf_fromWarehouseId').value = whId;
+            document.getElementById('tf_skuCode').value = sku;
+            document.getElementById('tf_productDisplay').value = pName + " (" + sku + ")";
+            document.getElementById('tf_maxQty').innerText = qty;
+            document.getElementById('tf_quantity').max = qty;
+
+            const selectTo = document.getElementById('tf_toWarehouseId');
+            selectTo.innerHTML = '<option value="" disabled selected>-- Chọn kho đích --</option>';
+            warehousesData.forEach(w => {
+                if(w.warehouseId != whId) {
+                    selectTo.innerHTML += `<option value="${w.warehouseId}">${w.name}</option>`;
+                }
+            });
+
+            new bootstrap.Modal(document.getElementById('transferStockModal')).show();
+        }
+
+        // HÀM MỞ MODAL SỬA KHO (Lúc nãy ông bị thiếu cái này)
+        function openEditWH(whId) {
+            const wh = warehousesData.find(w => w.warehouseId === whId);
+            if (wh) {
+                document.getElementById('edit_warehouseId').value = wh.warehouseId;
+                document.getElementById('edit_name').value = wh.name;
+                document.getElementById('edit_latitude').value = wh.latitude;
+                document.getElementById('edit_longitude').value = wh.longitude;
+
+                new bootstrap.Modal(document.getElementById('editWarehouseModal')).show();
+            }
+        }
+
+        fetch('/api/warehouses')
+            .then(res => res.json())
+            .then(data => {
+                warehousesData = data;
+                const quickList = document.getElementById('warehouse-list-quick');
+                data.forEach(wh => {
+                    var customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style='width: 20px; height: 20px; background-color: ${wh.statusColor}; border-radius: 50%; border: 3px solid white;'></div>`,
+                        iconSize: [20, 20], iconAnchor: [10, 10]
+                    });
+
+                    var marker = L.marker([wh.latitude, wh.longitude], {icon: customIcon}).addTo(map);
+                    markersMap[wh.warehouseId] = marker;
+                    marker.bindPopup(`<b>${wh.name}</b>`);
+
+                    const item = document.createElement('div');
+                    item.className = "list-group-item list-group-item-action small py-2 d-flex justify-content-between align-items-center";
+                    item.innerHTML = `<div onclick="flyToWH(${wh.latitude}, ${wh.longitude}, ${wh.warehouseId})" style="flex-grow: 1;"><i class="fa-solid fa-circle me-2" style="color: ${wh.statusColor}; font-size: 10px;"></i> ${wh.name}</div>
+                        <div class="d-flex gap-1">
+                            <span class="action-btn edit-btn" onclick="openEditWH(${wh.warehouseId})"><i class="fa-solid fa-pen-to-square"></i></span>
+                            <a href="/admin/warehouses/delete/${wh.warehouseId}" class="action-btn delete-btn" onclick="return confirm('Xóa kho này?')"><i class="fa-solid fa-trash-can"></i></a>
+                        </div>`;
+                    quickList.appendChild(item);
+
+                    marker.on('click', function() {
+                        const sidebar = document.getElementById('sidebar-content');
+                        sidebar.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
+                        fetch(`/api/warehouses/${wh.warehouseId}/inventory`)
+                            .then(r => r.json())
+                            .then(items => {
+                                let html = `<h6 class="fw-bold text-primary small mb-1">${wh.name}</h6><hr class="my-1">
+                                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
+                                                <tbody>`;
+                                if (items.length === 0) { html += '<tr><td class="text-center py-3">Kho trống</td></tr>'; }
+                                else {
+                                    items.forEach(i => {
+                                        html += `<tr>
+                                            <td>${i.productName}<br><small class="text-muted">${i.sku}</small></td>
+                                            <td class="text-end">
+                                                <span class="badge ${i.quantity > 50 ? 'bg-success' : 'bg-warning text-dark'}">${i.quantity}</span><br>
+                                                <a href="javascript:void(0)" class="text-info text-decoration-none" style="font-size: 9px;"
+                                                   onclick="openTransferModal(${wh.warehouseId}, '${i.sku}', '${i.productName}', ${i.quantity})">
+                                                   <i class="fa-solid fa-truck-fast"></i> Điều phối
+                                                </a>
+                                            </td>
+                                        </tr>`;
+                                    });
+                                }
+                                html += `</tbody></table>`;
+                                sidebar.innerHTML = html;
+                            });
+                    });
+                });
+            });
+    </script>
+</div>

@@ -1,0 +1,214 @@
+<div th:fragment="main-content">
+    <div class="container-fluid px-4 py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-ticket me-2 text-primary"></i>QUẢN LÝ MÃ GIẢM GIÁ
+            </h2>
+            <button class="btn btn-primary rounded-pill shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
+                <i class="fa-solid fa-plus-circle me-1"></i> Tạo mã mới
+            </button>
+        </div>
+
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i><strong th:text="${successMsg}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i><strong th:text="${errorMsg}"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase">
+                    <tr>
+                        <th class="ps-4" style="font-size: 12px;">Mã Voucher</th>
+                        <th style="font-size: 12px;">Giảm giá</th>
+                        <th style="font-size: 12px;">Đơn tối thiểu</th>
+                        <th style="font-size: 12px;">Sử dụng</th>
+                        <th style="font-size: 12px;">Thời hạn</th>
+                        <th style="font-size: 12px;">Trạng thái</th>
+                        <th class="text-end pe-4" style="font-size: 12px;">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="v : ${vouchers}">
+                        <td class="ps-4">
+                            <span class="fw-bold text-primary" th:text="${v.voucherCode}"></span>
+                            <div class="small text-muted" th:text="${v.description}"></div>
+                        </td>
+                        <td>
+                                <span class="badge bg-soft-info text-info px-3 py-2"
+                                      th:text="${v.discountType == 'PERCENT' ? v.discountValue + '%' : #numbers.formatDecimal(v.discountValue, 0, 'COMMA', 0, 'POINT') + ' ₫'}">
+                                </span>
+                        </td>
+                        <td th:text="${#numbers.formatDecimal(v.minOrderAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></td>
+                        <td>
+                            <span class="small" th:text="${v.usedCount + ' / ' + v.usageLimit}"></span>
+                            <div class="progress mt-1" style="height: 5px; width: 100px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     th:style="'width: ' + (${v.usedCount > 0 && v.usageLimit > 0} ? (${v.usedCount} * 100 / ${v.usageLimit}) : 0) + '%'"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small" th:text="${#temporals.format(v.startDate, 'dd/MM/yyyy')}"></div>
+                            <div class="small text-muted" th:text="${'đến ' + #temporals.format(v.endDate, 'dd/MM/yyyy')}"></div>
+                        </td>
+                        <td>
+                            <span th:if="${v.active}" class="badge bg-success rounded-pill px-3">Đang chạy</span>
+                            <span th:if="${!v.active}" class="badge bg-secondary rounded-pill px-3">Đã ẩn</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-outline-primary btn-sm rounded-circle me-1 shadow-sm"
+                                    th:data-code="${v.voucherCode}"
+                                    onclick="openEditModal(this.getAttribute('data-code'))">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <a th:href="@{/admin/vouchers/delete(code=${v.voucherCode})}"
+                               class="btn btn-outline-danger btn-sm rounded-circle shadow-sm"
+                               onclick="return confirm('Hệ thống sẽ kiểm tra logic đơn hàng trước khi xóa. Bạn chắc chứ?')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(vouchers)}">
+                        <td colspan="7" class="text-center py-5 text-muted">Chưa có mã giảm giá nào được tạo.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addVoucherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form th:action="@{/admin/vouchers/save}" method="post" class="modal-content border-0 rounded-4 shadow-lg">
+                <div class="modal-header border-0 bg-primary text-white p-4 rounded-top-4">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-plus-circle me-2"></i>Tạo mã khuyến mãi mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">MÃ VOUCHER (Viết liền, không dấu)</label>
+                            <input type="text" name="voucherCode" class="form-control bg-light border-0" required placeholder="Ví dụ: NEWUSER2026">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">LOẠI GIẢM GIÁ</label>
+                            <select name="discountType" class="form-select bg-light border-0">
+                                <option value="FIXED">Giảm tiền mặt (₫)</option>
+                                <option value="PERCENT">Giảm phần trăm (%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">MÔ TẢ CHIẾN DỊCH</label>
+                            <input type="text" name="description" class="form-control bg-light border-0" placeholder="Ví dụ: Giảm giá đặc biệt cho khách hàng mới..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">GIÁ TRỊ GIẢM</label>
+                            <input type="number" name="discountValue" class="form-control bg-light border-0" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">ĐƠN TỐI THIỂU (₫)</label>
+                            <input type="number" name="minOrderAmount" class="form-control bg-light border-0" value="0" min="0">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold text-primary">TỔNG LƯỢT SỬ DỤNG (Bắt lỗi không được âm)</label>
+                            <input type="number" name="usageLimit" class="form-control border-primary" value="100" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">NGÀY BẮT ĐẦU</label>
+                            <input type="datetime-local" name="startDate" class="form-control bg-light border-0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">NGÀY KẾT THÚC</label>
+                            <input type="datetime-local" name="endDate" class="form-control bg-light border-0" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm">Kích hoạt mã</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editVoucherModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form th:action="@{/admin/vouchers/update}" method="post" class="modal-content border-0 rounded-4 shadow-lg">
+                <div class="modal-header border-0 bg-light p-4 rounded-top-4">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-pen-nib me-2 text-primary"></i>Cập nhật mã giảm giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">MÃ VOUCHER</label>
+                            <input type="text" name="voucherCode" id="edit_code" class="form-control bg-white border" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-primary">TRẠNG THÁI (ẨN/HIỆN)</label>
+                            <select name="active" id="edit_active" class="form-select bg-light border-0">
+                                <option value="true">Đang kích hoạt (Hiện)</option>
+                                <option value="false">Tạm khóa mã này (Ẩn)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">MÔ TẢ NGẮN</label>
+                            <input type="text" name="description" id="edit_desc" class="form-control bg-light border-0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-danger">TỔNG LƯỢT SỬ DỤNG (Không được < 0)</label>
+                            <input type="number" name="usageLimit" id="edit_limit" class="form-control border-danger" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">GIÁ TRỊ GIẢM</label>
+                            <input type="number" name="discountValue" id="edit_value" class="form-control bg-light border-0" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">BẮT ĐẦU</label>
+                            <input type="datetime-local" name="startDate" id="edit_start" class="form-control bg-light border-0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">KẾT THÚC</label>
+                            <input type="datetime-local" name="endDate" id="edit_end" class="form-control bg-light border-0" required>
+                        </div>
+                        <input type="hidden" name="discountType" id="edit_type">
+                        <input type="hidden" name="minOrderAmount" id="edit_min">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(code) {
+            fetch('/admin/vouchers/api?code=' + encodeURIComponent(code))
+                .then(response => response.json())
+                .then(v => {
+                    document.getElementById('edit_code').value = v.voucherCode;
+                    document.getElementById('edit_desc').value = v.description;
+                    document.getElementById('edit_type').value = v.discountType;
+                    document.getElementById('edit_value').value = v.discountValue;
+                    document.getElementById('edit_min').value = v.minOrderAmount;
+                    document.getElementById('edit_limit').value = v.usageLimit;
+                    document.getElementById('edit_active').value = v.active.toString();
+
+                    if (v.startDate) document.getElementById('edit_start').value = v.startDate.substring(0, 16);
+                    if (v.endDate) document.getElementById('edit_end').value = v.endDate.substring(0, 16);
+
+                    const myModal = new bootstrap.Modal(document.getElementById('editVoucherModal'));
+                    myModal.show();
+                })
+                .catch(err => {
+                    console.error("Lỗi lấy dữ liệu Voucher:", err);
+                    alert("Không thể tải thông tin mã giảm giá!");
+                });
+        }
+    </script>
+</div>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Giỏ Hàng | SmartTech Store')}"></head>
+<body style="background-color: #f8f9fa;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5">
+  <h2 class="fw-bold mb-4"><i class="fa-solid fa-cart-shopping text-primary me-2"></i>Giỏ hàng của bạn</h2>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div th:if="${#lists.isEmpty(cartItems)}" class="card border-0 shadow-sm p-5 text-center" style="border-radius: 20px;">
+        <i class="fa-solid fa-cart-arrow-down fa-5x text-light mb-3"></i>
+        <h4>Giỏ hàng của bạn đang trống</h4>
+        <a href="/products" class="btn btn-primary rounded-pill mt-3 px-4">ĐI MUA SẮM NGAY</a>
+      </div>
+
+      <div th:if="${!#lists.isEmpty(cartItems)}" class="card border-0 shadow-sm overflow-hidden" style="border-radius: 20px;">
+        <table class="table align-middle mb-0">
+          <thead class="bg-light text-muted small text-uppercase">
+          <tr>
+            <th class="ps-4 py-3">Sản phẩm</th>
+            <th class="py-3">Giá</th>
+            <th class="py-3" style="width: 150px;">Số lượng</th>
+            <th class="py-3 text-end pe-4">Thành tiền</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="item : ${cartItems}">
+            <td class="ps-4 py-4">
+              <div class="d-flex align-items-center">
+                <img th:src="${item.imageUrl}" width="60" class="rounded me-3 border p-1 bg-white">
+                <div>
+                  <h6 class="mb-0 fw-bold" th:text="${item.productName}"></h6>
+                  <small class="text-muted" th:text="${item.skuCode}"></small>
+                  <br>
+                  <a th:href="@{/cart/remove/{sku}(sku=${item.skuCode})}" class="text-danger small text-decoration-none">
+                    <i class="fa-solid fa-trash-can me-1"></i> Xóa
+                  </a>
+                </div>
+              </div>
+            </td>
+            <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></td>
+            <td>
+              <input type="number" class="form-control form-control-sm text-center bg-light border-0"
+                     th:value="${item.quantity}" readonly>
+            </td>
+            <td class="text-end pe-4 fw-bold text-primary"
+                th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="col-lg-4" th:if="${!#lists.isEmpty(cartItems)}">
+      <div class="card border-0 shadow-sm p-4" style="border-radius: 20px; position: sticky; top: 20px;">
+        <h5 class="fw-bold mb-4">Tổng cộng</h5>
+        <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+          <span class="text-muted">Tạm tính:</span>
+          <span class="fw-bold" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></span>
+        </div>
+        <div class="d-flex justify-content-between mb-4">
+          <span class="text-muted">Phí vận chuyển:</span>
+          <span class="text-success fw-bold">Miễn phí</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h5 class="mb-0 fw-bold">Thành tiền:</h5>
+          <h4 class="text-primary fw-bold mb-0" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></h4>
+        </div>
+        <a th:href="@{/checkout}" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm text-decoration-none">
+          TIẾN HÀNH THANH TOÁN <i class="fa-solid fa-arrow-right ms-2"></i>
+        </a>
+        <a href="/products" class="btn btn-link w-100 text-decoration-none text-muted mt-2 small">Tiếp tục mua sắm</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+<div th:replace="~{fragments/scripts :: scripts-fragment}"></div>
+</body>
+</html>

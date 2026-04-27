@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head-fragment('Cửa Hàng | SmartTech Store')}"></head>
+
+<body style="background-color: #f8f9fa;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main>
+    <div th:if="${keyword == null and isAllProducts == null and min == null and max == null}"
+         class="hero-banner d-flex align-items-center justify-content-center text-center text-white"
+         style="background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+                url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1600&auto=format&fit=crop') no-repeat center center;
+                background-size: cover; height: 400px;">
+        <div class="container animate__animated animate__fadeIn">
+            <h1 class="display-4 fw-bold mb-3 text-uppercase">Nâng Tầm Trải Nghiệm Số</h1>
+            <p class="lead mb-4 fs-4">Sở hữu siêu phẩm công nghệ với ưu đãi cực khủng tại SmartTech.</p>
+            <a th:href="@{/products}" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-lg border-2 text-decoration-none">MUA SẮM NGAY</a>
+        </div>
+    </div>
+
+    <div class="container mb-5 mt-5">
+        <div class="row">
+            <aside th:if="${keyword != null or isAllProducts != null}" class="col-lg-3">
+                <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px; position: sticky; top: 100px;">
+                    <h5 class="fw-bold mb-4 text-dark border-bottom pb-2">
+                        <i class="fa-solid fa-filter text-primary me-2"></i>Bộ lọc giá
+                    </h5>
+                    <form th:action="@{/products/search}" method="get">
+                        <input type="hidden" name="keyword" th:value="${keyword}">
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold mb-2 text-uppercase">Giá từ (₫)</label>
+                            <input type="number" name="min" class="form-control border-0 bg-light py-2"
+                                   th:value="${min != null ? #numbers.formatDecimal(min, 0, 0) : ''}" placeholder="0">
+                        </div>
+                        <div class="mb-4">
+                            <label class="small text-muted fw-bold mb-2 text-uppercase">Đến (₫)</label>
+                            <input type="number" name="max" class="form-control border-0 bg-light py-2"
+                                   th:value="${max != null && max < 900000000 ? #numbers.formatDecimal(max, 0, 0) : ''}" placeholder="30,000,000">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm mb-3">
+                            ÁP DỤNG LỌC
+                        </button>
+                        <a th:href="@{/products}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill text-decoration-none small">
+                            <i class="fa-solid fa-rotate-left me-1"></i>Xóa bộ lọc
+                        </a>
+                    </form>
+                </div>
+            </aside>
+
+            <div th:class="${keyword != null or isAllProducts != null} ? 'col-lg-9' : 'col-lg-12'">
+
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h2 th:if="${keyword == null and isAllProducts == null and min == null and max == null}" class="fw-bold mb-0 text-dark">
+                        <span class="text-primary">⚡</span> Sản Phẩm Bán Chạy
+                    </h2>
+                    <h2 th:if="${isAllProducts != null and keyword == null}" class="fw-bold mb-0 text-dark">📦 Tất cả sản phẩm</h2>
+                    <div th:if="${keyword != null}" class="search-info">
+                        <h4 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>
+                            Kết quả cho: <span class="text-primary" th:text="'&quot;' + ${keyword} + '&quot;'"></span>
+                        </h4>
+                    </div>
+
+                    <a th:if="${keyword == null and isAllProducts == null and min == null and max == null}" th:href="@{/products}"
+                       class="text-primary text-decoration-none fw-bold hover-underline">
+                        Xem tất cả <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+
+                <div th:if="${#lists.isEmpty(products) and #lists.isEmpty(bestSellers)}"
+                     class="text-center py-5 bg-white rounded-4 border shadow-sm my-4">
+                    <i class="fa-solid fa-box-open fa-5x text-light mb-3 opacity-50"></i>
+                    <h4 class="text-muted fw-bold">Không tìm thấy sản phẩm phù hợp!</h4>
+                    <a th:href="@{/products}" class="btn btn-primary rounded-pill px-5 py-2 mt-2 fw-bold">XÓA BỘ LỌC</a>
+                </div>
+
+                <div th:class="'row g-4 ' + (${keyword != null or isAllProducts != null} ? 'row-cols-1 row-cols-md-2 row-cols-lg-3' : 'row-cols-1 row-cols-md-3 row-cols-lg-4')">
+
+                    <div class="col" th:each="p : ${(keyword == null and isAllProducts == null and min == null and max == null) ? bestSellers : products}">
+                        <div class="card h-100 product-card shadow-sm border-0 transition-hover"
+                             style="border-radius: 18px; position: relative; overflow: hidden;">
+
+                            <button class="btn-favorite-icon position-absolute shadow-sm d-flex align-items-center justify-content-center"
+                                    th:data-sku="${p.skuCode}"
+                                    onclick="toggleProductFavorite(this)"
+                                    style="top: 15px; right: 15px; width: 38px; height: 38px; z-index: 11; background: white; border-radius: 50%; border: none; cursor: pointer;">
+                                <i th:class="${favoritedSkus != null and favoritedSkus.contains(p.skuCode) ? 'fa-solid fa-heart text-danger fs-5' : 'fa-regular fa-heart text-muted fs-5'}"></i>
+                            </button>
+
+                            <div th:if="${!p.active}"
+                                 class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                                 style="background: rgba(255, 255, 255, 0.75); z-index: 10;">
+                                <span class="badge bg-danger px-3 py-2 shadow-lg fs-6 rounded-pill">
+                                    <i class="fa-solid fa-ban me-1"></i> NGỪNG KINH DOANH
+                                </span>
+                            </div>
+
+                            <div th:if="${p.active and (p.totalQuantity == null or p.totalQuantity <= 0)}"
+                                 class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                                 style="background: rgba(0, 0, 0, 0.4); z-index: 9;">
+                                <span class="badge bg-warning text-dark px-3 py-2 shadow-lg fs-6 rounded-pill">
+                                    <i class="fa-solid fa-hourglass-end me-1"></i> TẠM HẾT HÀNG
+                                </span>
+                            </div>
+
+                            <div class="position-relative bg-white pt-3">
+                                <img th:src="${p.imageUrl != null && !p.imageUrl.isEmpty() ? p.imageUrl : 'https://via.placeholder.com/300x250?text=No+Image'}"
+                                     class="card-img-top p-4" th:alt="${p.productName}"
+                                     style="object-fit: contain; height: 240px;">
+                                <span th:if="${p.active and p.totalQuantity > 0}"
+                                      class="position-absolute top-0 start-0 m-3 badge rounded-pill bg-danger shadow-sm">-10%</span>
+                            </div>
+
+                            <div class="card-body p-4 bg-white border-top">
+                                <div class="mb-2 d-flex justify-content-between align-items-center">
+                                    <span class="text-uppercase text-primary fw-bold" style="font-size: 0.65rem;" th:text="${p.category}">Danh mục</span>
+                                    <small th:if="${p.active and p.totalQuantity > 0}" class="text-muted" style="font-size: 0.7rem;">
+                                        Kho: <span th:text="${p.totalQuantity}">0</span>
+                                    </small>
+                                </div>
+                                <h6 class="card-title fw-bold text-dark text-truncate mt-1 mb-0" th:text="${p.productName}">Tên sản phẩm</h6>
+                                <div class="mb-3">
+                                    <p class="text-muted mb-1" style="font-size: 0.75rem;">Mã SKU: <span class="fw-bold" th:text="${p.skuCode}">SKU</span></p>
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-primary fw-bold fs-5 me-2"
+                                              th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span>
+                                        <span class="text-muted text-decoration-line-through small"
+                                              th:text="${#numbers.formatDecimal(p.basePrice * 1.1, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a th:href="@{/products/detail/{id}(id=${p.skuCode})}" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold">Chi tiết</a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a th:if="${p.active and p.totalQuantity != null and p.totalQuantity > 0}"
+                                           th:href="@{/cart/buy-now/{id}(id=${p.skuCode})}"
+                                           class="btn btn-primary btn-sm w-100 rounded-pill fw-bold shadow-sm">
+                                            Mua ngay
+                                        </a>
+
+                                        <button th:unless="${p.active and p.totalQuantity != null and p.totalQuantity > 0}"
+                                                disabled
+                                                class="btn btn-secondary btn-sm w-100 rounded-pill fw-bold disabled shadow-none">
+                                            <span th:text="${!p.active} ? 'Tạm ngưng' : 'Hết hàng'"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <nav th:if="${totalPages > 1}" aria-label="Page navigation" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link rounded-start-pill px-3 shadow-sm border-0"
+                               th:href="@{${keyword != null ? '/products/search' : '/products'}(page=${currentPage - 1}, keyword=${keyword}, min=${min}, max=${max})}"
+                               tabindex="-1">
+                                <i class="fa-solid fa-chevron-left small"></i>
+                            </a>
+                        </li>
+
+                        <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${currentPage == i} ? 'active'">
+                            <a class="page-link rounded-circle border-0 shadow-sm text-center"
+                               style="width: 40px; height: 40px; line-height: 24px;"
+                               th:href="@{${keyword != null ? '/products/search' : '/products'}(page=${i}, keyword=${keyword}, min=${min}, max=${max})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                            <a class="page-link rounded-end-pill px-3 shadow-sm border-0"
+                               th:href="@{${keyword != null ? '/products/search' : '/products'}(page=${currentPage + 1}, keyword=${keyword}, min=${min}, max=${max})}">
+                                <i class="fa-solid fa-chevron-right small"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+<div th:replace="~{fragments/scripts :: scripts-fragment}"></div>
+
+<style>
+    .transition-hover { transition: all 0.3s ease; }
+    .transition-hover:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.12) !important;
+    }
+    .hover-underline:hover { text-decoration: underline !important; }
+    .btn.disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* CSS Phân trang */
+    .pagination .page-link {
+        color: #1a252f;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .pagination .page-item.disabled .page-link {
+        background-color: #f8f9fa;
+        color: #dee2e6;
+    }
+
+    /* CSS Nút Trái tim */
+    .btn-favorite-icon { transition: all 0.2s ease; }
+    .btn-favorite-icon:hover { transform: scale(1.15); background-color: #fff1f1 !important; }
+</style>
+
+<script>
+    function toggleProductFavorite(btn) {
+        const sku = btn.getAttribute('data-sku');
+        const icon = btn.querySelector('i');
+
+        fetch('/api/favorite/toggle?sku=' + encodeURIComponent(sku), {
+            method: 'POST'
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    alert("Vui lòng đăng nhập để thực hiện chức năng yêu thích!");
+                    window.location.href = '/login';
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    if (data.favorited) {
+                        icon.classList.remove('fa-regular', 'text-muted');
+                        icon.classList.add('fa-solid', 'text-danger');
+                    } else {
+                        icon.classList.remove('fa-solid', 'text-danger');
+                        icon.classList.add('fa-regular', 'text-muted');
+                    }
+                }
+            })
+            .catch(error => console.error("Lỗi yêu thích: ", error));
+    }
+</script>
+
+</body>
+</html>

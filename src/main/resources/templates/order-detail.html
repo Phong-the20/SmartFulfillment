@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head-fragment('Chi tiết đơn hàng | SmartTech')}"></head>
+
+<body style="background-color: #f0f2f5;">
+<header th:replace="~{fragments/header :: header-fragment}"></header>
+
+<main class="container my-5">
+    <div class="mb-4">
+        <a th:href="@{${isAdmin != null && isAdmin ? '/admin/orders' : '/orders'}}"
+           class="btn btn-white shadow-sm rounded-pill px-4 border text-secondary hover-translate">
+            <i class="fa-solid fa-arrow-left me-2"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold mb-1">
+                            Đơn hàng <span class="text-primary" th:text="${'#' + order.orderId}">#ORD-123</span>
+                        </h3>
+                        <p class="text-muted small mb-0">
+                            <i class="fa-regular fa-calendar-check me-1"></i>
+                            Ngày đặt: <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}"></span>
+                        </p>
+                    </div>
+
+                    <div th:if="${order.status != null}">
+                        <span th:if="${order.status.name() == 'PENDING'}" class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                            <i class="fa-solid fa-clock me-1"></i> [[${order.status.displayName}]]
+                        </span>
+                        <span th:if="${order.status.name() == 'PAID'}" class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                            <i class="fa-solid fa-money-bill-wave me-1"></i> [[${order.status.displayName}]]
+                        </span>
+                        <span th:if="${order.status.name() == 'SHIPPING'}" class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-2">
+                            <i class="fa-solid fa-truck-fast me-1"></i> [[${order.status.displayName}]]
+                        </span>
+                        <span th:if="${order.status.name() == 'COMPLETED'}" class="badge bg-success text-white rounded-pill px-3 py-2 shadow-sm">
+                            <i class="fa-solid fa-circle-check me-1"></i> [[${order.status.displayName}]]
+                        </span>
+                        <span th:if="${order.status.name() == 'CANCELLED'}" class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                            <i class="fa-solid fa-ban me-1"></i> [[${order.status.displayName}]]
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="text-secondary small text-uppercase fw-bold">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Đơn giá</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="d : ${order.orderDetails}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-3 p-2 me-3">
+                                        <i class="fa-solid fa-laptop text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark" th:text="${d.product.productName}">MacBook Pro M3</div>
+                                        <div class="small text-muted" th:text="${d.product.category}">Laptop</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center fw-bold" th:text="${d.quantity}">1</td>
+                            <td class="text-end text-muted" th:text="${#numbers.formatDecimal(d.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+                            <td class="text-end fw-bold text-dark" th:text="${#numbers.formatDecimal(d.price * d.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="border-top pt-4 mt-2">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí vận chuyển:</span>
+                        <span class="text-success fw-bold">Miễn phí</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <h5 class="fw-bold mb-0">Tổng thanh toán:</h5>
+                        <h3 class="fw-bold text-primary mb-0" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="fa-solid fa-user-check me-2 text-primary"></i> Người nhận
+                </h5>
+                <div class="fw-bold fs-5" th:text="${order.fullname}">Phong Trần</div>
+                <div class="text-muted small mt-2">
+                    <i class="fa-solid fa-phone me-1"></i> <span th:text="${order.phone}"></span>
+                </div>
+                <div class="text-muted small mt-1">
+                    <i class="fa-solid fa-envelope me-1"></i> <span th:text="${order.email}"></span>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="fa-solid fa-location-dot me-2 text-primary"></i> Địa chỉ giao hàng
+                </h5>
+                <p class="text-muted small lh-lg mb-0" th:text="${order.shippingAddress}"></p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary text-white shadow">
+                <h5 class="fw-bold mb-4 d-flex align-items-center">
+                    <i class="fa-solid fa-credit-card me-2"></i> Thanh toán
+                </h5>
+                <div class="d-flex justify-content-between small mb-3">
+                    <span>Phương thức:</span>
+                    <span class="fw-bold" th:text="${order.paymentMethod}">MOMO</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span>Vận chuyển:</span>
+                    <span class="fw-bold">HỎA TỐC (24H)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .hover-translate { transition: transform 0.2s; }
+    .hover-translate:hover { transform: scale(1.02); }
+    .badge { font-weight: 600; letter-spacing: 0.3px; }
+    .bg-primary { background-color: #0d6efd !important; }
+    .text-primary { color: #0d6efd !important; }
+</style>
+
+<footer th:replace="~{fragments/footer :: footer-fragment}"></footer>
+</body>
+</html>

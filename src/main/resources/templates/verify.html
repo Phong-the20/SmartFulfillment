@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác thực tài khoản - SmartTech</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      min-height: 100vh; display: flex; align-items: center; font-family: 'Poppins', sans-serif;
+    }
+    .verify-card { border-radius: 20px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+    .otp-input { letter-spacing: 10px; font-size: 2rem; text-align: center; font-weight: bold; }
+    .btn-disabled { opacity: 0.6; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card verify-card p-4 p-md-5 text-center">
+
+        <div class="mb-4">
+          <i class="fa-solid fa-envelope-circle-check fa-4x text-primary"></i>
+        </div>
+        <h3 class="fw-bold">Xác thực Email</h3>
+
+        <p class="text-muted small">Chúng tôi đã gửi mã OTP đến:<br>
+          <strong th:text="${email}"></strong>
+        </p>
+
+        <div th:if="${error == 'wrong_code'}" class="alert alert-danger py-2 text-center small">
+          Mã OTP không chính xác!
+        </div>
+        <div th:if="${error == 'expired'}" class="alert alert-warning py-2 text-center small">
+          Mã OTP đã hết hạn. Vui lòng gửi lại mã mới!
+        </div>
+
+        <div th:if="${error == 'locked'}" class="alert alert-dark py-3 text-center small shadow-sm">
+          <div class="fw-bold mb-1"><i class="fa-solid fa-lock me-1"></i> TÀI KHOẢN TẠM KHÓA</div>
+          <div id="lockout-timer" class="fs-5 fw-bold text-warning">05:00</div>
+          <div class="mt-1" style="font-size: 10px;">Vui lòng thử lại sau thời gian này</div>
+        </div>
+
+        <div th:if="${resend == 'success'}" class="alert alert-success py-2 text-center small">
+          Đã gửi lại mã OTP mới!
+        </div>
+
+        <form th:action="@{/verify}" method="post">
+          <input type="hidden" name="email" th:value="${email}">
+          <div class="mb-4">
+            <input type="text" name="code" class="form-control otp-input" placeholder="000000"
+                   maxlength="6" required autofocus th:disabled="${error == 'locked'}">
+          </div>
+          <button type="submit" class="btn w-100 rounded-pill py-2 fw-bold mb-3 shadow-sm"
+                  th:disabled="${error == 'locked'}"
+                  th:classappend="${error == 'locked'} ? 'btn-secondary btn-disabled' : 'btn-primary'">
+            XÁC NHẬN MÃ
+          </button>
+        </form>
+
+        <form th:action="@{/resend-otp}" method="post">
+          <input type="hidden" name="email" th:value="${email}">
+
+          <button th:if="${error != 'locked'}"
+                  type="submit" id="btnResend"
+                  class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" disabled>
+            Gửi lại mã (<span id="countdown">60</span>s)
+          </button>
+
+          <div th:if="${error == 'locked'}" class="text-muted small mt-2">
+            <i class="fa-solid fa-clock-rotate-left"></i> Chức năng gửi lại mã đang tạm khóa
+          </div>
+        </form>
+        <div class="mt-4">
+          <a th:href="@{/login}" class="text-decoration-none small text-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại Đăng nhập
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  // 1. ĐẾM NGƯỢC 60 GIÂY CHO NÚT GỬI LẠI
+  let timeLeft = 60;
+  const btnResend = document.getElementById('btnResend');
+  const countdownSpan = document.getElementById('countdown');
+
+  if (btnResend && countdownSpan) {
+    const resendTimer = setInterval(() => {
+      timeLeft--;
+      countdownSpan.innerText = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(resendTimer);
+        btnResend.disabled = false;
+        btnResend.innerHTML = 'Gửi lại mã OTP';
+        btnResend.classList.replace('btn-outline-secondary', 'btn-outline-primary');
+      }
+    }, 1000);
+  }
+
+  // 2. ĐẾM NGƯỢC 5 PHÚT KHI BỊ KHÓA (CHỈ CHẠY NẾU ĐANG CÓ LỖI 'LOCKED')
+  const lockoutEnd = [[${lockoutEnd != null ? lockoutEnd : 0}]];
+  const userEmail = [[${email}]];
+  const hasLockedError = [[${error == 'locked'}]]; // Kiểm tra xem có đang hiện thông báo khóa không
+
+  // CHỈ CHẠY ĐỒNG HỒ NẾU CÓ THỜI GIAN KHÓA VÀ ĐANG TRONG TRẠNG THÁI LỖI 'LOCKED'
+  if (lockoutEnd > 0 && hasLockedError) {
+    const timerDisplay = document.getElementById('lockout-timer');
+    const updateLockout = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = lockoutEnd - now;
+
+      if (distance <= 0) {
+        clearInterval(updateLockout);
+        // CHỈ RELOAD KHI ĐÃ HẾT THỜI GIAN CHỜ ĐỂ MỞ KHÓA
+        window.location.href = "/verify?email=" + encodeURIComponent(userEmail);
+      } else if (timerDisplay) {
+        const minutes = Math.floor(distance / 60000);
+        const seconds = Math.floor((distance % 60000) / 1000);
+        timerDisplay.innerText = (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+      }
+    }, 1000);
+  }
+  /*]]>*/
+</script>
+</body>
+</html>

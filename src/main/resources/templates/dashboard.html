@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart-Fulfillment Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { background: #212529; min-height: 100vh; color: white; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar p-3">
+            <h4>Smart-Fulfillment</h4>
+            <hr>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link text-white fw-bold" href="#">📦 Kho hàng</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#">📜 Đơn hàng</a></li>
+            </ul>
+        </div>
+
+        <div class="col-md-10 p-4">
+            <h2 class="mb-4">Quản lý Tồn kho</h2>
+
+            <div class="card shadow border-0">
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>SKU</th>
+                            <th>Kho</th>
+                            <th>Vị trí</th>
+                            <th>Tồn thực tế</th>
+                            <th>Tồn khả dụng</th>
+                            <th>Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${inventoryList}">
+                            <td th:text="${item.skuCode}"></td>
+                            <td th:text="${item.warehouseId}"></td>
+                            <td th:text="${item.locationZone}"></td>
+                            <td class="fw-bold" th:text="${item.physicalQty}"></td>
+                            <td class="text-primary fw-bold" th:text="${item.availableQty}"></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary"
+                                        th:onclick="openReserveModal([[${item.skuCode}]], [[${item.warehouseId}]])">
+                                    Giữ hàng
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reserveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo lệnh Giữ hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">SKU: <b id="modalSku"></b></label>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mã đơn hàng (Order ID)</label>
+                    <input type="text" id="orderId" class="form-control" placeholder="Ví dụ: ORD-999">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Số lượng giữ</label>
+                    <input type="number" id="qty" class="form-control" value="1">
+                </div>
+                <input type="hidden" id="warehouseId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success" onclick="executeReserve()">Xác nhận Giữ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let reserveModal;
+    document.addEventListener('DOMContentLoaded', () => {
+        reserveModal = new bootstrap.Modal(document.getElementById('reserveModal'));
+    });
+
+    function openReserveModal(sku, warehouseId) {
+        document.getElementById('modalSku').innerText = sku;
+        document.getElementById('warehouseId').value = warehouseId;
+        reserveModal.show();
+    }
+
+    async function executeReserve() {
+        const sku = document.getElementById('modalSku').innerText;
+        const warehouseId = document.getElementById('warehouseId').value;
+        const orderId = document.getElementById('orderId').value;
+        const qty = document.getElementById('qty').value;
+
+        const data = {
+            orderId: orderId,
+            customerId: "0EF9F908-1413-4BCA-A49D-528DF0D354D6", // Lấy tạm 1 UUID admin của ông
+            shippingAddress: "Cần Thơ",
+            items: [
+                { skuCode: sku, warehouseId: warehouseId, quantity: parseInt(qty) }
+            ]
+        };
+
+        const response = await fetch('/api/v1/inventory/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert("Thành công: Đã tạo đơn và giữ hàng!");
+            location.reload();
+        } else {
+            const errorMsg = await response.text();
+            alert("Lỗi: " + errorMsg);
+        }
+    }
+</script>
+</body>
+</html>

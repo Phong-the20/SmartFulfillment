@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<header th:fragment="header-fragment" class="bg-dark shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark container py-3">
+        <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" th:href="@{/}">
+            <i class="fa-solid fa-microchip text-primary me-2"></i>
+            <span class="text-white">SMART</span><span class="text-primary">TECH</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <form class="mx-auto d-flex flex-grow-1 justify-content-center px-lg-5"
+                  th:action="@{/products/search}" method="get" style="max-width: 700px;">
+                <div class="input-group">
+                    <input type="text" name="keyword" class="form-control border-0 rounded-start-pill ps-4"
+                           placeholder="Tìm kiếm sản phẩm..."
+                           th:value="${keyword}">
+                    <button class="btn btn-primary rounded-end-pill px-4" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            <ul class="navbar-nav align-items-center gap-3">
+                <li class="nav-item" sec:authorize="hasAnyAuthority('ADMIN', 'STAFF')">
+                    <a class="nav-link text-white" th:href="${#authorization.expression('hasAuthority(''ADMIN'')')} ? @{/admin/dashboard} : @{/admin/orders}">
+                        <i class="fa-solid fa-user-shield me-1 text-primary"></i> Admin
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#"
+                       id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center me-2"
+                             style="width: 32px; height: 32px;">
+                            <i class="fa-solid fa-user fs-6"></i>
+                        </div>
+                        <span th:text="${user != null ? 'Chào, ' + user.fullName : 'Chào, Khách'}"></span>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" style="border-radius: 12px; min-width: 200px;">
+
+                        <th:block th:if="${user != null}">
+                            <li><a class="dropdown-item rounded-3 mb-1" th:href="@{/profile}"><i class="fa-solid fa-id-card me-2"></i> Hồ sơ</a></li>
+                            <li><a class="dropdown-item rounded-3 mb-1" th:href="@{/orders}"><i class="fa-solid fa-clock-rotate-left me-2"></i> Đơn hàng</a></li>
+                            <li>
+                                <a class="dropdown-item rounded-3 mb-1" th:href="@{/favorites}">
+                                    <i class="fa-solid fa-heart me-2 text-danger"></i> Sản phẩm yêu thích
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item text-danger fw-bold rounded-3 border-0 bg-transparent w-100 text-start">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </th:block>
+
+                        <th:block th:if="${user == null}">
+                            <li>
+                                <a class="dropdown-item fw-bold text-primary rounded-3 mb-1" th:href="@{/login}">
+                                    <i class="fa-solid fa-right-to-bracket me-2"></i> Đăng nhập
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item rounded-3" th:href="@{/login(openRegister=true)}">
+                                    <i class="fa-solid fa-user-plus me-2"></i> Đăng ký ngay
+                                </a>
+                            </li>
+                        </th:block>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a th:href="@{/cart}" class="nav-link position-relative px-2">
+                        <i class="fa-solid fa-cart-shopping fs-4 text-white"></i>
+                        <span th:if="${cartCount > 0}"
+                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark shadow-sm"
+                              style="font-size: 0.65rem; min-width: 20px;"
+                              th:text="${cartCount}">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<style>
+    .hover-text-white:hover { color: white !important; }
+    .nav-link { transition: all 0.2s ease-in-out; }
+    .nav-link:hover { transform: translateY(-1px); }
+    .dropdown-item:active { background-color: #0d6efd; color: white; }
+    .dropdown-item { transition: background 0.2s; }
+</style>
+
+</body>
+</html>
