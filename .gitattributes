@@ -1,0 +1,6 @@
+# Đánh dấu các file HTML, JS, CSS là 'documentation' hoặc 'vendored' để GitHub không tính vào ngôn ngữ chính
+src/main/resources/templates/** linguist-language=Java
+src/main/resources/static/** linguist-vendored
+*.html linguist-detectable=false
+*.js linguist-detectable=false
+*.css linguist-detectable=false
